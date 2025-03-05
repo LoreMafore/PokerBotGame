@@ -3,7 +3,7 @@
 Made By Conrad Mercer 3/3/2025
 
 """
-
+#card creator
 class Cards:
     SUITS = {0: "spades", 1: "hearts", 2: "clubs", 3: "diamonds "}
     TYPE = {0: "Ace", 1: "2", 2: "3", 3: "4", 4: "5", 5: "6", 6: "7",
