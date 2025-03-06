@@ -12,7 +12,7 @@ from Card import Cards
 from Dealer import Dealer
 from Player import Players
 
-start_of_round = False
+start_of_round = True
 
 player_1 = Players(initial_money=1000)
 player_2 = Players(initial_money=1000)
@@ -39,10 +39,10 @@ if start_of_round:
     for i, player in enumerate(dealer.player_list):
         print(f"Player {i + 1} hand: {[str(card) for card in player.player_hand]}")
 
-    player_list[small_blind].money -= small_blind
+    player_list[small_blind_pos].money -= small_blind
     total_bet += small_blind
 
-    player_list[big_blind].money -= big_blind
+    player_list[big_blind_pos].money -= big_blind
     total_bet += big_blind
     current_highest_bet = big_blind
 

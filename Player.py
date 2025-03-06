@@ -3,9 +3,6 @@
 Made By Conrad Mercer 3/3/2025
 
 """
-from main import player
-from Dealer import Dealer
-
 
 class Players():
 
