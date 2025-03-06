@@ -12,15 +12,47 @@ from Card import Cards
 from Dealer import Dealer
 from Player import Players
 
+
+def _check_all_players_done(player_list, end_of_round, current_highest_bet, pos=0):
+    # Base case: we've checked all players
+    if pos >= len(player_list):
+        # All players have been checked and met the conditions
+        print("All players have acted")
+        end_of_round = False
+        return True
+
+    # Check if current player meets any of the conditions
+    current_player = player_list[pos]
+    if (current_player.bet == current_highest_bet or
+            current_player.fold_bool == True or
+            current_player.all_in_bool == True):
+        # This player is done, check the next player
+        return _check_all_players_done(player_list, end_of_round,current_highest_bet, pos + 1)
+    else:
+        # Found a player who still needs to act
+        print("\n\nPLAYER NEEDS TO ACT NOW\n\n")
+        return False
+
+#determines turn order
+def _turn_order(player_list, small_blind_pos, big_blind_pos, discard_pile, current_highest_bet):
+    end_of_round = True
+    while end_of_round:
+        #players after big blind
+        for current_player_pos in range(big_blind_pos + 1, len(player_list)):
+            player_list[current_player_pos]._player_turn(discard_pile, current_highest_bet)
+        #players before big blind
+        for current_player in range(small_blind_pos+1):
+            player_list[current_player]._player_turn(discard_pile, current_highest_bet)
+        #checks if all players need to do more actions
+        _check_all_players_done(player_list, end_of_round, current_highest_bet, 0)
+
+        if _check_all_players_done(player_list, end_of_round, current_highest_bet, 0) == True:
+            end_of_round = False
+
+        pass
+
 start_of_round = True
-
-player_1 = Players(initial_money=1000)
-player_2 = Players(initial_money=1000)
-player_3 = Players(initial_money=1000)
-
-player_list = [player_1,player_2,player_3]
-
-dealer = Dealer(player_list)
+dealer = Dealer(4)
 small_blind = 50
 big_blind = 100
 small_blind_pos = 0
@@ -39,23 +71,38 @@ if start_of_round:
     for i, player in enumerate(dealer.player_list):
         print(f"Player {i + 1} hand: {[str(card) for card in player.player_hand]}")
 
-    player_list[small_blind_pos].money -= small_blind
+    #set up small blind
+    dealer.player_list[small_blind_pos].money -= small_blind
+    dealer.player_list[small_blind_pos].bet = small_blind
     total_bet += small_blind
 
-    player_list[big_blind_pos].money -= big_blind
+    #set up big blind
+    dealer.player_list[big_blind_pos].money -= big_blind
+    dealer.player_list[big_blind_pos].bet = big_blind
     total_bet += big_blind
     current_highest_bet = big_blind
 
-    #TODO Implement a turn function that allows player to do there normal turn
+    #player turns
+    _turn_order(dealer.player_list, small_blind_pos, big_blind_pos, dealer.discard_pile,current_highest_bet )
+
+    #TODO dealer plays theen _turn_order
+
+    #at the end of everything this shifts small and big blind
+    if small_blind_pos < len(dealer.player_list) + 1:
+        small_blind_pos += 1
+        if small_blind_pos == len(dealer.player_list):
+            big_blind = 0
+        else:
+            big_blind = small_blind_pos + 1
+
+    else:
+        small_blind_pos = 0
+
+
+
+
+
     #TODO There probably needs a game manger script
-
-
-
-
-
-
-
-
 
 
 # pygame setup

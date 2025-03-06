@@ -5,15 +5,20 @@ Made By Conrad Mercer 3/3/2025
 """
 import random
 from Card import Cards
+from Player import Players
 
 class Dealer():
-    def __init__(self, player_list):
-        self.player_list = player_list
+    def __init__(self, num_of_players):
+        self.player_list = []
         self.deck_of_cards = []
         self.discard_pile = []
 
         # Initialize the deck
         self._cards()
+
+        # Create the players with an initial money amount
+        for i in range(num_of_players):
+            self.player_list.append(Players(initial_money=1000))
 
     def _update(self):
         pass
@@ -36,9 +41,9 @@ class Dealer():
         random.shuffle(self.deck_of_cards)
 
 
-
-
-
     def _play_on_board(self):
         #TODO play the starting three cards and the two after that
+        pass
+
+    def _check_winner(self):
         pass
