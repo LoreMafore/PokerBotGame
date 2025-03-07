@@ -5,7 +5,9 @@ Made By Conrad Mercer 3/3/2025
 """
 
 class Players():
-
+ 
+ #TODO has to make sure the highest bet is being returned
+ 
     def __init__(self, initial_money):
         self.money = initial_money
         self.player_hand = []
@@ -35,6 +37,7 @@ class Players():
 
         else:
             print("try again")
+            self._raise(self)
 
 
     def _check(self, current_highest_bet):
@@ -64,31 +67,33 @@ class Players():
 
 
     def _player_turn(self, discard_pile, current_highest_bet):
+        if self.fold_bool == False or self.all_in_bool == False or self.bet != current_highest_bet:
+            print("\nYou have",self.money, "dollars.")
+            print(f"Player Hand: {[str(card) for card in self.player_hand]}")
+            print("The bet was: ", current_highest_bet)
+            print("What do you want to do?\n"
+                "1: Fold\n"
+                "2: Call\n"
+                "3: Check\n"
+                "4: Raise\n"
+                "5: All in")
 
-        print("\nYou have",self.money, "dollars.")
-        print(f"Player Hand: {[str(card) for card in self.player_hand]}")
-        print("The bet was: ", current_highest_bet)
-        print("What do you want to do?\n"
-              "1: Fold\n"
-              "2: Call\n"
-              "3: Check\n"
-              "4: Raise\n"
-              "5: All in")
+            player_action = int(input("Answer: "))
 
-        player_action = int(input("Answer: "))
+            if player_action == 1:
+                self._fold(discard_pile)
+                
+            elif player_action == 2:
+                self._call(current_highest_bet)
 
-        if player_action == 1:
-            self._fold(discard_pile)
+            elif player_action == 3:
+                self._check(current_highest_bet)
 
-        elif player_action == 2:
-            self._call(current_highest_bet)
+            elif player_action == 4:
+                self._raise(current_highest_bet)
 
-        elif player_action == 3:
-            self._check(current_highest_bet)
+            elif player_action == 5:
+                self._all_in()
 
-        elif player_action == 4:
-            self._raise(current_highest_bet)
-
-        elif player_action == 5:
-            self._all_in()
-
+        else:
+            pass

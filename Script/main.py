@@ -18,8 +18,8 @@ def _check_all_players_done(player_list, end_of_round, current_highest_bet, pos=
     if pos >= len(player_list):
         # All players have been checked and met the conditions
         print("All players have acted")
-        end_of_round = False
         return True
+        end_of_round = False
 
     # Check if current player meets any of the conditions
     current_player = player_list[pos]
@@ -50,59 +50,61 @@ def _turn_order(player_list, small_blind_pos, big_blind_pos, discard_pile, curre
             end_of_round = False
 
         pass
+    
 
-start_of_round = True
-dealer = Dealer(4)
-small_blind = 50
-big_blind = 100
-small_blind_pos = 0
-big_blind_pos = small_blind_pos + 1
+def _main():
+    start_of_round = True
+    dealer = Dealer(4)
+    small_blind = 50
+    big_blind = 100
+    small_blind_pos = 0
+    big_blind_pos = small_blind_pos + 1
 
-if start_of_round:
-    current_highest_bet = 0
-    total_bet = 0
-    # Shuffle the deck
-    dealer.shuffle_deck()
+    if start_of_round:
+        current_highest_bet = 0
+        total_bet = 0
+        # Shuffle the deck
+        dealer.shuffle_deck()
 
-    # Deal two cards to each player
-    dealer._dealing()
+        # Deal two cards to each player
+        dealer._dealing()
 
-    # Print out each player's hand
-    for i, player in enumerate(dealer.player_list):
-        print(f"Player {i + 1} hand: {[str(card) for card in player.player_hand]}")
+        # Print out each player's hand
+        for i, player in enumerate(dealer.player_list):
+            print(f"Player {i + 1} hand: {[str(card) for card in player.player_hand]}")
 
-    #set up small blind
-    dealer.player_list[small_blind_pos].money -= small_blind
-    dealer.player_list[small_blind_pos].bet = small_blind
-    total_bet += small_blind
+        #set up small blind
+        dealer.player_list[small_blind_pos].money -= small_blind
+        dealer.player_list[small_blind_pos].bet = small_blind
+        total_bet += small_blind
 
-    #set up big blind
-    dealer.player_list[big_blind_pos].money -= big_blind
-    dealer.player_list[big_blind_pos].bet = big_blind
-    total_bet += big_blind
-    current_highest_bet = big_blind
+        #set up big blind
+        dealer.player_list[big_blind_pos].money -= big_blind
+        dealer.player_list[big_blind_pos].bet = big_blind
+        total_bet += big_blind
+        current_highest_bet = big_blind
 
-    #player turns
-    _turn_order(dealer.player_list, small_blind_pos, big_blind_pos, dealer.discard_pile,current_highest_bet )
+        #player turns
+        _turn_order(dealer.player_list, small_blind_pos, big_blind_pos, dealer.discard_pile, current_highest_bet )
 
-    #TODO dealer plays theen _turn_order
+        #TODO dealer plays then _turn_order
 
-    #at the end of everything this shifts small and big blind
-    if small_blind_pos < len(dealer.player_list) + 1:
-        small_blind_pos += 1
-        if small_blind_pos == len(dealer.player_list):
-            big_blind = 0
+        #at the end of everything this shifts small and big blind
+        if small_blind_pos < len(dealer.player_list) + 1:
+            small_blind_pos += 1
+            if small_blind_pos == len(dealer.player_list):
+                big_blind = 0
+            else:
+                big_blind = small_blind_pos + 1
+
         else:
-            big_blind = small_blind_pos + 1
+            small_blind_pos = 0
 
-    else:
-        small_blind_pos = 0
+        #TODO There probably needs a game manger script
 
+if __name__ == '__main__':
+    _main()
 
-
-
-
-    #TODO There probably needs a game manger script
 
 
 # pygame setup

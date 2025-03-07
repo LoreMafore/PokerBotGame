@@ -4,6 +4,9 @@ Made By Conrad Mercer 3/3/2025
 
 """
 import random
+
+from samba.provision.common import setup_ldb
+
 from Card import Cards
 from Player import Players
 
@@ -12,6 +15,7 @@ class Dealer():
         self.player_list = []
         self.deck_of_cards = []
         self.discard_pile = []
+        self.flop = []
 
         # Initialize the deck
         self._cards()
@@ -41,8 +45,27 @@ class Dealer():
         random.shuffle(self.deck_of_cards)
 
 
-    def _play_on_board(self):
-        #TODO play the starting three cards and the two after that
+    def _play_on_board(self, flop_counter):
+        #dealers plays first 3 cards on boards
+        while(flop_counter < 3):
+            self.flop.append(self.deck_of_cards[0])
+            self.deck_of_cards.pop(0)  # Remove the card from the deck
+            flop_counter += 1
+            if flop_counter == 3:
+                return 
+        #dealers play 4th card
+        if flop_counter == 3:
+            self.flop.append(self.deck_of_cards[0])
+            self.deck_of_cards.pop(0)  # Remove the card from the deck
+            flop_counter += 1
+            return
+
+        #dealers play 5th card
+        if flop_counter == 4:
+            self.flop.append(self.deck_of_cards[0])
+            self.deck_of_cards.pop(0)  # Remove the card from the deck
+            flop_counter *= 0
+            return
         pass
 
     def _check_winner(self):
