@@ -5,9 +5,9 @@ Made By Conrad Mercer 3/3/2025
 """
 import random
 
-
 from Card import Cards
 from Player import Players
+
 
 class Dealer():
     def __init__(self, num_of_players):
@@ -19,9 +19,11 @@ class Dealer():
         # Initialize the deck
         self._cards()
 
+        names = ["Alice", "Bob", "Charlie", "Diana", "Ethan", "Fiona", "George", "Hannah", "Ian", "Julia"]
+
         # Create the players with an initial money amount
         for i in range(num_of_players):
-            self.player_list.append(Players(initial_money=1000))
+            self.player_list.append(Players(initial_money=1000, name=names[i]))
 
     def _update(self):
         pass
@@ -32,6 +34,7 @@ class Dealer():
             for card_type in Cards.TYPE:
                 self.deck_of_cards.append(Cards(card_type, card_suit))
 
+    # Deals cards to all the players in the game
     def _dealing(self):
         for player in self.player_list:
             cards = 0
@@ -43,14 +46,14 @@ class Dealer():
     def shuffle_deck(self):
         random.shuffle(self.deck_of_cards)
 
-    #TODO ADD display cards here and burning cards
+    # TODO ADD display cards here and burning cards
     def _play_on_board(self, flop_counter):
-        #dealers plays first 3 cards on boards
+        # dealers plays first 3 cards on boards
 
         print(f"Flop counter: {flop_counter}")
         if flop_counter < 3:
-            #burn a card
-            self.discard_pile.append(self.deck_of_cards.append(0))
+            # burn a card
+            self.discard_pile.append(self.deck_of_cards.pop(0))
 
             for i in range(3):
                 self.flop.append(self.deck_of_cards.pop(0))
@@ -58,20 +61,20 @@ class Dealer():
             print("Flop cards:", [str(card) for card in self.flop])
             return False, 3
 
-        #dealers play 4th card
+        # dealers play 4th card
         if flop_counter == 3:
-            #burn a card
-            self.discard_pile.append(self.deck_of_cards.append(0))
+            # burn a card
+            self.discard_pile.append(self.deck_of_cards.pop(0))
 
             self.flop.append(self.deck_of_cards.pop(0))
 
             print("Flop cards:", [str(card) for card in self.flop])
             return False, 4
 
-        #dealers play 5th card
+        # dealers play 5th card
         if flop_counter == 4:
-            #burn a card
-            self.discard_pile.append(self.deck_of_cards.append(0))
+            # burn a card
+            self.discard_pile.append(self.deck_of_cards.pop(0))
 
             self.flop.append(self.deck_of_cards.pop(0))
 
@@ -79,66 +82,108 @@ class Dealer():
             return True, 0
         pass
 
-    #I pulled this to the end from the internet
+    def get_card_value(self, card):
+        """Convert card type to numerical value for comparison."""
+        # Handle Ace high
+        if card.type == 0:  # Ace
+            return 14
+        return card.type + 1
+
+    def get_hand_strength(self, hand):
+        """Calculate the strength of a hand and return a tuple for comparison."""
+        # Count occurrences of each card type
+        type_counts = {}
+        for card in hand:
+            type_counts[card.type] = type_counts.get(card.type, 0) + 1
+
+        # Check if all cards are of the same suit (flush)
+        same_suit = len(set(card.suit for card in hand)) == 1
+
+        # Sort cards by value for checking sequences
+        sorted_values = sorted([self.get_card_value(card) for card in hand])
+
+        # Check for straight
+        is_straight = False
+        # Handle the case of A-5 straight
+        if sorted_values == [2, 3, 4, 5, 14]:
+            is_straight = True
+            # For A-5 straight, Ace is treated as 1
+            sorted_values = [1, 2, 3, 4, 5]
+        else:
+            # Regular straight check
+            is_straight = all(sorted_values[i + 1] - sorted_values[i] == 1 for i in range(len(sorted_values) - 1))
+
+        # Straight flush
+        if is_straight and same_suit:
+            return (8, sorted_values)
+
+        # Four of a kind
+        if 4 in type_counts.values():
+            four_kind_value = [t for t, count in type_counts.items() if count == 4][0]
+            four_kind_value = 14 if four_kind_value == 0 else four_kind_value + 1
+            kicker = [t for t, count in type_counts.items() if count == 1][0]
+            kicker = 14 if kicker == 0 else kicker + 1
+            return (7, four_kind_value, kicker)
+
+        # Full house
+        if 3 in type_counts.values() and 2 in type_counts.values():
+            three_kind_value = [t for t, count in type_counts.items() if count == 3][0]
+            three_kind_value = 14 if three_kind_value == 0 else three_kind_value + 1
+            pair_value = [t for t, count in type_counts.items() if count == 2][0]
+            pair_value = 14 if pair_value == 0 else pair_value + 1
+            return (6, three_kind_value, pair_value)
+
+        # Flush
+        if same_suit:
+            return (5, sorted_values)
+
+        # Straight
+        if is_straight:
+            return (4, sorted_values)
+
+        # Three of a kind
+        if 3 in type_counts.values():
+            three_kind_value = [t for t, count in type_counts.items() if count == 3][0]
+            three_kind_value = 14 if three_kind_value == 0 else three_kind_value + 1
+            kickers = sorted([14 if t == 0 else t + 1 for t, count in type_counts.items() if count == 1], reverse=True)
+            return (3, three_kind_value, kickers)
+
+        # Two pair
+        if list(type_counts.values()).count(2) == 2:
+            pairs = sorted([14 if t == 0 else t + 1 for t, count in type_counts.items() if count == 2], reverse=True)
+            kicker = [14 if t == 0 else t + 1 for t, count in type_counts.items() if count == 1][0]
+            return (2, pairs, kicker)
+
+        # One pair
+        if 2 in type_counts.values():
+            pair_value = [t for t, count in type_counts.items() if count == 2][0]
+            pair_value = 14 if pair_value == 0 else pair_value + 1
+            kickers = sorted([14 if t == 0 else t + 1 for t, count in type_counts.items() if count == 1], reverse=True)
+            return (1, pair_value, kickers)
+
+        # High card
+        return (0, sorted_values[::-1])  # Reversed for high-to-low comparison
+
+    # Hand rankings (from highest to lowest)
+    # 8: Straight Flush, 7: Four of a Kind, 6: Full House, 5: Flush,
+    # 4: Straight, 3: Three of a Kind, 2: Two Pair, 1: One Pair, 0: High Card
     def _check_winner(self):
-        # Map for card values from your Cards class values to the evaluation values
-        value_dict = {0: 14, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 11, 11: 12, 12: 13}
 
-        # List to store each player's cards and community cards
-        player_hands = []
-        for player in self.player_list:
-            if not player.fold_bool:  # Only consider players who haven't folded
-                # Combine player's hand with community cards
-                full_hand = player.player_hand + self.flop
-                # Convert to format needed for evaluation
-                converted_hand = [(value_dict[card.type], card.suit) for card in full_hand]
-                player_hands.append((player, converted_hand))
+        players = [player for player in self.player_list if len(player.player_hand) > 0 and not player.fold_bool]
 
-        if not player_hands:  # No active players
-            return None
+        # Calculate strength for each player's hand
+        player_strengths = [(player, self.get_hand_strength(player.player_hand)) for player in players]
 
-        # Evaluate each player's hand
-        best_rank = -1
-        best_players = []
+        # Sort players based on hand strength (strongest first)
+        sorted_players = [player for player, _ in sorted(player_strengths, key=lambda x: x[1], reverse=True)]
 
-        for player, hand in player_hands:
-            # Only evaluate the best 5 cards
-            hand_combinations = self._get_best_hand(hand)
-            hand_rank, hand_info = self._eval_hand(hand_combinations)
-
-            print(f"Player hand: {[str(card) for card in player.player_hand]}, Rank: {hand_rank}, Info: {hand_info}")
-
-            if hand_rank > best_rank:
-                best_rank = hand_rank
-                best_players = [(player, hand_combinations, hand_info)]
-            elif hand_rank == best_rank:
-                best_players.append((player, hand_combinations, hand_info))
-
-        # If only one player has the best hand
-        if len(best_players) == 1:
-            winner = best_players[0][0]
-            return winner
-
-        # Break ties
-        if len(best_players) > 1:
-            best_so_far = best_players[0]
-            for i in range(1, len(best_players)):
-                if self._tiebreaker(best_so_far[1], best_players[i][1], best_so_far[2], best_players[i][2]):
-                    continue
-                else:
-                    best_so_far = best_players[i]
-
-            return best_so_far[0]  # Return the winning player
-
-    def _get_best_hand(self, hand):
-        # For now, just return the 5 highest cards
-        # In a full implementation, you would check all possible 5-card combinations
-        # from the 7 cards (player's 2 + community 5) and return the best one
-        return sorted(hand, key=lambda x: x[0], reverse=True)[:5]
+        return sorted_players[0]
 
     def _eval_hand(self, hand):
         # Return ranking: high card = 0, ... royal flush = 9
         # Also return high card(s) of rank
+
+        # TODO this is still broken
 
         values = sorted([c[0] for c in hand])
         suits = [c[1] for c in hand]

@@ -9,7 +9,7 @@ class Players():
  #maybe a total bet needs to be added rn there is one in the main function
  # but maybe i want to implement it here
 
-    def __init__(self, initial_money):
+    def __init__(self, initial_money, name):
         self.money = initial_money
         self.player_hand = []
         self.player_turn = False
@@ -17,6 +17,7 @@ class Players():
         self.fold_bool = False
         self.all_in_bool = False
         self.have_bet = False
+        self.name = name
 
 
     def _update(self, big_blind_pos, small_blind_pos):
@@ -86,43 +87,49 @@ class Players():
             return current_highest_bet
 
 
-
+    # The actual player input on their turn
     def _player_turn(self, discard_pile, current_highest_bet, total_bet):
 
         old_bet = self.bet
-        if self.fold_bool == True or self.all_in_bool == True or self.bet == current_highest_bet and self.have_bet == True:
+
+        # Skip the players turn if they've gone all in, folded, or have already bet the right amount
+        if self.fold_bool == True or self.all_in_bool == True or (self.bet == current_highest_bet and self.have_bet == True):
             return total_bet, current_highest_bet
 
         else:
-            print("\nYou have",self.money, "dollars.")
+            print(f"\n{self.name} has",self.money, "dollars.")
             print(f"Player Hand: {[str(card) for card in self.player_hand]}")
-            print("The bet was: ", current_highest_bet)
-            print(f"The total bet: {total_bet}")
-            print("What do you want to do?\n"
+            print(f"The bet was: ", current_highest_bet)
+            print(f"The pot is : {total_bet}")
+
+            # are we able to check?
+            can_check = current_highest_bet == self.bet
+
+            # how much we have to call
+            call_amount = current_highest_bet - self.bet;
+
+            print("What do you want to do (enter index)?\n"
                 "1: Fold\n"
-                "2: Call\n"
-                "3: Check\n"
+                f"{"2" if call_amount > 0 else "X"}: Call\n"
+                f"{"3" if can_check else "X"}: Check\n"
                 "4: Raise\n"
                 "5: All in")
 
             player_action = int(input("Answer: "))
 
+            # Choose the player decision
             if player_action == 1:
                 self._fold(discard_pile)
-                
-            elif player_action == 2:
+            elif player_action == 2 and call_amount > 0:
                 self._call(current_highest_bet)
-
-            elif player_action == 3:
+            elif player_action == 3 and can_check:
                 self._check(current_highest_bet)
-
             elif player_action == 4:
                 current_highest_bet = self._raise(current_highest_bet)
-
-
             elif player_action == 5:
-                current_highest_bet = self._all_in()
+                current_highest_bet = self._all_in(current_highest_bet)
 
+            # how much is being added to the pot
             total_bet += abs(self.bet - old_bet)
 
             return  total_bet, current_highest_bet
