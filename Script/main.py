@@ -13,6 +13,7 @@ from Dealer import Dealer
 from Player import Players
 
 
+
 def _check_all_players_done(player_list, end_of_round, current_highest_bet, pos=0):
     # Base case: we've checked all players
     if pos >= len(player_list):
@@ -34,33 +35,36 @@ def _check_all_players_done(player_list, end_of_round, current_highest_bet, pos=
         return False
 
 #determines turn order
-def _turn_order(player_list, small_blind_pos, big_blind_pos, discard_pile, current_highest_bet):
+def _turn_order(player_list, small_blind_pos, big_blind_pos, discard_pile, current_highest_bet, total_bet):
     end_of_round = True
     while end_of_round:
+
+
         #players after big blind
         for current_player_pos in range(big_blind_pos + 1, len(player_list)):
-            player_list[current_player_pos]._player_turn(discard_pile, current_highest_bet)
+           total_bet, current_highest_bet = player_list[current_player_pos]._player_turn(discard_pile, current_highest_bet,total_bet)
+
         #players before big blind
         for current_player in range(small_blind_pos+1):
-            player_list[current_player]._player_turn(discard_pile, current_highest_bet)
+            total_bet, current_highest_bet = player_list[current_player]._player_turn(discard_pile, current_highest_bet,total_bet)
+
         #checks if all players need to do more actions
-        _check_all_players_done(player_list, end_of_round, current_highest_bet, 0)
 
         if _check_all_players_done(player_list, end_of_round, current_highest_bet, 0) == True:
             end_of_round = False
 
-        pass
+        return  total_bet, current_highest_bet
     
 
 def _main():
-    start_of_round = True
     dealer = Dealer(4)
     small_blind = 50
     big_blind = 100
     small_blind_pos = 0
     big_blind_pos = small_blind_pos + 1
+    flop_counter = 0
 
-    if start_of_round:
+    while True:
         current_highest_bet = 0
         total_bet = 0
         # Shuffle the deck
@@ -85,21 +89,45 @@ def _main():
         current_highest_bet = big_blind
 
         #player turns
-        _turn_order(dealer.player_list, small_blind_pos, big_blind_pos, dealer.discard_pile, current_highest_bet )
+        total_bet, current_highest_bet = _turn_order(dealer.player_list, small_blind_pos, big_blind_pos, dealer.discard_pile, current_highest_bet, total_bet)
 
         #TODO dealer plays then _turn_order
+        game_complete = False
+        while not game_complete:
+            # Deal community cards - returns a tuple (game_complete, new_flop_counter)
+            result = dealer._play_on_board(flop_counter)
+            game_complete = result[0]
+            flop_counter = result[1]
 
-        #at the end of everything this shifts small and big blind
-        if small_blind_pos < len(dealer.player_list) + 1:
+            if not game_complete:
+                # Reset bets for the new betting round
+                for player in dealer.player_list:
+                    player.bet = 0
+                    player.have_bet = False
+                current_highest_bet = 0
+
+                # total_bet = 0
+
+                # Next betting round
+                total_bet, current_highest_bet = _turn_order(dealer.player_list, small_blind_pos, big_blind_pos,
+                                                             dealer.discard_pile, current_highest_bet, total_bet)
+
+                winner = dealer._check_winner()
+
+                if winner:
+                    winner.money += total_bet
+                    print(f"Player with hand {[str(card) for card in winner.player_hand]} wins ${total_bet}!")
+                else:
+                    print("No winner determined (all players folded).")
+        # At the end of everything this shifts small and big blind
+        if small_blind_pos < len(dealer.player_list) - 1:
             small_blind_pos += 1
-            if small_blind_pos == len(dealer.player_list):
-                big_blind = 0
-            else:
-                big_blind = small_blind_pos + 1
-
+            big_blind_pos = small_blind_pos + 1
+            if big_blind_pos >= len(dealer.player_list):
+                big_blind_pos = 0
         else:
             small_blind_pos = 0
-
+            big_blind_pos = 1
         #TODO There probably needs a game manger script
 
 if __name__ == '__main__':

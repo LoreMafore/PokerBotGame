@@ -6,8 +6,9 @@ Made By Conrad Mercer 3/3/2025
 
 class Players():
  
- #TODO has to make sure the highest bet is being returned
- 
+ #maybe a total bet needs to be added rn there is one in the main function
+ # but maybe i want to implement it here
+
     def __init__(self, initial_money):
         self.money = initial_money
         self.player_hand = []
@@ -15,6 +16,8 @@ class Players():
         self.bet = 0
         self.fold_bool = False
         self.all_in_bool = False
+        self.have_bet = False
+
 
     def _update(self, big_blind_pos, small_blind_pos):
         #will check the position the big_blind and small_blind in relative to the player
@@ -30,28 +33,36 @@ class Players():
         if bet >= self.money:
             #will change this for pygame implementation
             print("You went all in")
-            self._all_in()
+            current_highest_bet = self._all_in()
+            self.have_bet = True
+            return current_highest_bet
+
         elif bet > current_highest_bet:
             self.money -= bet
+            self.bet += bet - self.bet
             current_highest_bet = bet
+            self.have_bet = True
+            return current_highest_bet
 
         else:
             print("try again")
-            self._raise(self)
+            self._raise(current_highest_bet)
 
 
     def _check(self, current_highest_bet):
         print("check")
         if current_highest_bet == 0:
-            #pass turn
-            pass
+            self.have_bet = True
+            return current_highest_bet
 
     def _call(self, current_highest_bet):
         print("call")
         if current_highest_bet != 0:
-            #minus the money you already put in
+            #this needs to check if you will go all in or not
             self.money -= current_highest_bet - self.bet
-            self.bet = current_highest_bet
+            self.bet += current_highest_bet
+            self.have_bet = True
+            return  current_highest_bet
 
 
     def _fold(self, discard_pile):
@@ -60,17 +71,33 @@ class Players():
             discard_pile.append(self.player_hand.pop(0))
         self.fold_bool = True
 
-    def _all_in(self):
+    def _all_in(self, current_highest_bet):
         print("all in")
+        self.bet += self.money
         self.money -= self.money
         self.all_in_bool = True
+        self.have_bet = True
+
+        if self.bet > current_highest_bet:
+            current_highest_bet = self.bet
+            return current_highest_bet
+
+        else:
+            return current_highest_bet
 
 
-    def _player_turn(self, discard_pile, current_highest_bet):
-        if self.fold_bool == False or self.all_in_bool == False or self.bet != current_highest_bet:
+
+    def _player_turn(self, discard_pile, current_highest_bet, total_bet):
+
+        old_bet = self.bet
+        if self.fold_bool == True or self.all_in_bool == True or self.bet == current_highest_bet and self.have_bet == True:
+            return total_bet, current_highest_bet
+
+        else:
             print("\nYou have",self.money, "dollars.")
             print(f"Player Hand: {[str(card) for card in self.player_hand]}")
             print("The bet was: ", current_highest_bet)
+            print(f"The total bet: {total_bet}")
             print("What do you want to do?\n"
                 "1: Fold\n"
                 "2: Call\n"
@@ -90,10 +117,12 @@ class Players():
                 self._check(current_highest_bet)
 
             elif player_action == 4:
-                self._raise(current_highest_bet)
+                current_highest_bet = self._raise(current_highest_bet)
+
 
             elif player_action == 5:
-                self._all_in()
+                current_highest_bet = self._all_in()
 
-        else:
-            pass
+            total_bet += abs(self.bet - old_bet)
+
+            return  total_bet, current_highest_bet

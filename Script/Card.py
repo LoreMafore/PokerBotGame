@@ -5,9 +5,9 @@ Made By Conrad Mercer 3/3/2025
 """
 #card creator
 class Cards:
-    SUITS = {0: "spades", 1: "hearts", 2: "clubs", 3: "diamonds "}
-    TYPE = {0: "Ace", 1: "2", 2: "3", 3: "4", 4: "5", 5: "6", 6: "7",
-            7: "8", 8: "9", 9: "10", 10: "Jack", 11: "Queen", 12: "King"}
+    SUITS = {0: "S", 1: "H", 2: "C", 3: "D"}
+    TYPE = {0: "A", 1: "2", 2: "3", 3: "4", 4: "5", 5: "6", 6: "7",
+            7: "8", 8: "9", 9: "T", 10: "J", 11: "Q", 12: "K"}
 
     def __init__(self, type: int, suit: int):
         if type not in self.TYPE:
