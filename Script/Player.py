@@ -3,8 +3,10 @@
 Made By Conrad Mercer 3/3/2025
 
 """
+import math
+
 import pygame.math
-from Dealer import Dealer
+# from Dealer import Dealer
 
 
 class Players():
@@ -45,29 +47,41 @@ class Players():
             table_center_y = 1080 // 2
 
             # Oval dimensions - these may not be right
-            a = 500  # Horizontal radius
-            b = 300
+            a = 750  # Horizontal radius
+            b = 350
 
-            #total_players = dealer .player_list.size()
-            #angle = 2 * math.pi * (player_index / total_players)
+            total_players = 4
+            angle = 2 * math.pi * (player_index / total_players)
 
-            card_spacing = self.player_hand[0].width + 10
-            card_pos = pygame.math.Vector2(200 + player_index * 100)
+            # Calculate position for this player
+            player_x = table_center_x + a * math.cos(angle)
+            player_y = table_center_y + b * math.sin(angle)
 
-            self.player_hand[0]._set_position(card_pos.x,card_pos.y)
-            self.player_hand[1]._set_position(card_pos.x + card_spacing, card_pos.y)
+            # Card spacing
+            card_spacing = 74
 
+            # Initialize player_position and player_rotation if empty
+            while len(self.player_position) < 2:
+                self.player_position.append((0, 0))
+            while len(self.player_rotation) < 2:
+                self.player_rotation.append(0)
+
+            # Set positions for each card
+            self.player_hand[0]._set_position(player_x - card_spacing, player_y, 0)
+            self.player_hand[1]._set_position(player_x + card_spacing, player_y, 0)
+
+            # Show cards for current player
             self.player_hand[0]._load_sprite(True)
             self.player_hand[1]._load_sprite(True)
 
+            # Set scale for each card
             self.player_hand[0]._set_scale(96, 144)
             self.player_hand[1]._set_scale(96, 144)
 
-            # self.player_hand[0]._set_scale(64, 96)
-            # self.player_hand[1]._set_scale(64, 96)
 
-            self.player_hand[0].is_showing_card = True
-            self.player_hand[1].is_showing_card = True
+            # Update positions in player_position array
+            self.player_position[0] = (player_x - card_spacing, player_y)
+            self.player_position[1] = (player_x + card_spacing, player_y)
 
     def _raise(self, current_highest_bet):
         bet = int(input("Raise Amount:"))
