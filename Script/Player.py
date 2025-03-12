@@ -4,6 +4,7 @@ Made By Conrad Mercer 3/3/2025
 
 """
 import pygame.math
+from Dealer import Dealer
 
 
 class Players():
@@ -40,23 +41,33 @@ class Players():
         if len(self.player_hand) >= 2:
             print(f"Player {self.name} has: {self.player_hand[0]}, {self.player_hand[1]}")
 
-        card_spacing = self.player_hand[0].width + 10
-        card_pos = pygame.math.Vector2(200 + player_index * 100)
+            table_center_x = 1920 // 2
+            table_center_y = 1080 // 2
 
-        self.player_hand[0]._set_position(card_pos.x,card_pos.y)
-        self.player_hand[1]._set_position(card_pos.x + card_spacing, card_pos.y)
+            # Oval dimensions - these may not be right
+            a = 500  # Horizontal radius
+            b = 300
 
-        self.player_hand[0]._load_sprite(True)
-        self.player_hand[1]._load_sprite(True)
+            #total_players = dealer .player_list.size()
+            #angle = 2 * math.pi * (player_index / total_players)
 
-        self.player_hand[0]._set_scale(96, 144)
-        self.player_hand[1]._set_scale(96, 144)
+            card_spacing = self.player_hand[0].width + 10
+            card_pos = pygame.math.Vector2(200 + player_index * 100)
 
-        # self.player_hand[0]._set_scale(64, 96)
-        # self.player_hand[1]._set_scale(64, 96)
+            self.player_hand[0]._set_position(card_pos.x,card_pos.y)
+            self.player_hand[1]._set_position(card_pos.x + card_spacing, card_pos.y)
 
-        self.player_hand[0].is_showing_card = True
-        self.player_hand[1].is_showing_card = True
+            self.player_hand[0]._load_sprite(True)
+            self.player_hand[1]._load_sprite(True)
+
+            self.player_hand[0]._set_scale(96, 144)
+            self.player_hand[1]._set_scale(96, 144)
+
+            # self.player_hand[0]._set_scale(64, 96)
+            # self.player_hand[1]._set_scale(64, 96)
+
+            self.player_hand[0].is_showing_card = True
+            self.player_hand[1].is_showing_card = True
 
     def _raise(self, current_highest_bet):
         bet = int(input("Raise Amount:"))

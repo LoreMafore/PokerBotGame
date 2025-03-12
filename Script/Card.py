@@ -5,7 +5,7 @@ Made By Conrad Mercer 3/3/2025
 """
 #card creator
 import pygame
-
+import os
 
 
 #card creator
@@ -32,8 +32,10 @@ class Cards:
 
     def _load_sprite(self, showing_card):
         card_name = f"{self.TYPE[self.type]}-{self.SUITS[self.suit]}.png"
-        card_path = f"C:/Users/momer/Coding/PythonProjects/PokerBotGame/Sprites/dark-cards/{card_name}"
-        card_back_path = f"C:/Users/momer/Coding/PythonProjects/PokerBotGame/Sprites/dark-cards/BACK.png"
+        card_path = f"../Sprites/dark-cards/{card_name}"
+        abs_path = os.path.abspath(card_path)
+        card_back_path = f"../Sprites/dark-cards/BACK.png"
+        abs_path = os.path.abspath(card_back_path)
         if showing_card:
             self.sprite = pygame.image.load(card_path)
 

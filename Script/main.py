@@ -4,9 +4,11 @@ Made By Conrad Mercer 3/3/2025
 
 """
 from functools import total_ordering
+from site import abs_paths
 
 import pygame
 import random
+import os
 
 from Card import Cards
 from Dealer import Dealer
@@ -215,7 +217,8 @@ pygame.display.set_caption("Poker Game")
 clock = pygame.time.Clock()
 running = True
 
-background_path = "C:/Users/momer/Coding/PythonProjects/PokerBotGame/Sprites/Table.png"
+background_path = "../Sprites/Table.png"
+abs_path = os.path.abspath(background_path)
 background = pygame.image.load(background_path)
 background = pygame.transform.scale(background, (1920, 1080))
 
