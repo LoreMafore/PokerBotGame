@@ -36,12 +36,14 @@ class Dealer():
 
     # Deals cards to all the players in the game
     def _dealing(self):
-        for player in self.player_list:
+        for i, player in enumerate(self.player_list):
             cards = 0
             while cards != 2:
                 player.player_hand.append(self.deck_of_cards[0])
                 self.deck_of_cards.pop(0)  # Remove the card from the deck
                 cards += 1
+            player._hand(i)
+
 
     def shuffle_deck(self):
         random.shuffle(self.deck_of_cards)
@@ -57,6 +59,8 @@ class Dealer():
 
             for i in range(3):
                 self.flop.append(self.deck_of_cards.pop(0))
+                self.flop[i]._set_position(100*i, 400)
+                self.flop[i].is_showing_card = True
 
             print("Flop cards:", [str(card) for card in self.flop])
             return False, 3

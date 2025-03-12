@@ -209,30 +209,102 @@ def _main():
             break
 
 
-if __name__ == '__main__':
-    _main()
+pygame.init()
+screen = pygame.display.set_mode((1920, 1080))
+pygame.display.set_caption("Poker Game")
+clock = pygame.time.Clock()
+running = True
 
-# pygame setup
-# pygame.init()
-# screen = pygame.display.set_mode((1280, 720))
-# clock = pygame.time.Clock()
-# running = True
-#
-# while running:
-#     # poll for events
-#     # pygame.QUIT event means the user clicked X to close your window
-#     for event in pygame.event.get():
-#         if event.type == pygame.QUIT:
-#             running = False
-#
-#     # fill the screen with a color to wipe away anything from last frame
-#     screen.fill("purple")
-#
-#     # RENDER YOUR GAME HERE
-#
-#     # flip() the display to put your work on screen
-#     pygame.display.flip()
-#
-#     clock.tick(60)  # limits FPS to 60
-#
-# pygame.quit()
+background_path = "C:/Users/momer/Coding/PythonProjects/PokerBotGame/Sprites/Table.png"
+background = pygame.image.load(background_path)
+background = pygame.transform.scale(background, (1920, 1080))
+
+# Initialize the dealer
+dealer = Dealer(4)
+
+# Reset and shuffle the deck
+dealer.deck_of_cards = []
+dealer._cards()  # Note: removed the semicolon (;) which is not needed in Python
+dealer.shuffle_deck()
+
+# Deal two cards to each player
+dealer._dealing()
+
+# Game state variables
+flop_counter = 0
+game_phase = "preflop"  # preflop, flop, turn, river, showdown
+
+while running:
+    # poll for events
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                running = False  # Changed from pygame.quit() to properly exit the loop
+            elif event.key == pygame.K_SPACE:
+                # Progress the game when spacebar is pressed
+                if game_phase == "preflop":
+                    game_phase = "flop"
+                    done, flop_counter = dealer._play_on_board(flop_counter)
+                elif game_phase == "flop":
+                    game_phase = "turn"
+                    done, flop_counter = dealer._play_on_board(flop_counter)
+                elif game_phase == "turn":
+                    game_phase = "river"
+                    done, flop_counter = dealer._play_on_board(flop_counter)
+                elif game_phase == "river":
+                    game_phase = "showdown"
+                elif game_phase == "showdown":
+                    # Reset the game
+
+                    game_phase = "preflop"
+                    flop_counter = 0
+
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Draw background
+    screen.blit(background, (0, 0))
+
+    # Draw all players' cards
+    for player in dealer.player_list:
+        for card in player.player_hand:
+            card.draw(screen)
+
+    # Draw flop cards
+    for card in dealer.flop:
+        card.draw(screen)
+
+    # Display game phase
+    font = pygame.font.SysFont('Arial', 24)
+    phase_text = font.render(f"Game Phase: {game_phase}", True, (255, 255, 255))
+    screen.blit(phase_text, (10, 10))
+
+    # Display instructions
+    instructions = font.render("Press SPACE to advance game, ESC to quit", True, (255, 255, 255))
+    screen.blit(instructions, (10, 40))
+
+    # Update the display
+    pygame.display.flip()
+    clock.tick(60)  # limits FPS to 60
+
+pygame.quit()
+
+
+def reset_game(dealer):
+    # Reset players
+    for p in dealer.player_list:
+        p.player_hand = []
+        p.bet = 0
+        p.fold_bool = False
+        p.all_in_bool = False
+        p.have_bet = False
+
+    # Reset and shuffle the deck
+    dealer.deck_of_cards = []
+    dealer.flop = []
+    dealer.discard_pile = []
+    dealer._cards()
+    dealer.shuffle_deck()
+
+    # Deal two cards to each player
+    dealer._dealing()

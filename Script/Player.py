@@ -3,6 +3,8 @@
 Made By Conrad Mercer 3/3/2025
 
 """
+import pygame.math
+
 
 class Players():
  
@@ -12,6 +14,8 @@ class Players():
     def __init__(self, initial_money, name):
         self.money = initial_money
         self.player_hand = []
+        self.player_position = []
+        self.player_rotation = []
         self.player_turn = False
         self.bet = 0
         self.fold_bool = False
@@ -24,10 +28,35 @@ class Players():
         #will check the position the big_blind and small_blind in relative to the player
         pass
 
-    def _hand(self):
-        #right now this will just print out your hand but this should
-        #probably hold the position of your cards?
-        print(self.player_hand[0], self.player_hand[1])
+
+    def _hand(self, player_index):
+    #should have a function or logic here to determine position of player
+    #chat gpt says for a oval centerted at (h,k) we need to do
+    # x = h+ a cos(theta) --- a being the horinztal radius
+    # y = k + b sin(theta) --- b being the vertical radius
+    #theta = 2pi/number of player times which player you are currently on
+
+
+        if len(self.player_hand) >= 2:
+            print(f"Player {self.name} has: {self.player_hand[0]}, {self.player_hand[1]}")
+
+        card_spacing = self.player_hand[0].width + 10
+        card_pos = pygame.math.Vector2(200 + player_index * 100)
+
+        self.player_hand[0]._set_position(card_pos.x,card_pos.y)
+        self.player_hand[1]._set_position(card_pos.x + card_spacing, card_pos.y)
+
+        self.player_hand[0]._load_sprite(True)
+        self.player_hand[1]._load_sprite(True)
+
+        self.player_hand[0]._set_scale(96, 144)
+        self.player_hand[1]._set_scale(96, 144)
+
+        # self.player_hand[0]._set_scale(64, 96)
+        # self.player_hand[1]._set_scale(64, 96)
+
+        self.player_hand[0].is_showing_card = True
+        self.player_hand[1].is_showing_card = True
 
     def _raise(self, current_highest_bet):
         bet = int(input("Raise Amount:"))
@@ -48,7 +77,6 @@ class Players():
         else:
             print("try again")
             self._raise(current_highest_bet)
-
 
     def _check(self, current_highest_bet):
         print("check")
@@ -88,6 +116,7 @@ class Players():
 
 
     # The actual player input on their turn
+
     def _player_turn(self, discard_pile, current_highest_bet, total_bet):
 
         old_bet = self.bet
@@ -110,8 +139,8 @@ class Players():
 
             print("What do you want to do (enter index)?\n"
                 "1: Fold\n"
-                f"{"2" if call_amount > 0 else "X"}: Call\n"
-                f"{"3" if can_check else "X"}: Check\n"
+                f"{'2' if call_amount > 0 else 'X'}: Call\n"
+                f"{'X' if not can_check else '3'}: Check\n"
                 "4: Raise\n"
                 "5: All in")
 
