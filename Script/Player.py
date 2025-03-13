@@ -6,7 +6,7 @@ Made By Conrad Mercer 3/3/2025
 import math
 
 import pygame.math
-# from Dealer import Dealer
+#from Dealer import Dealer
 
 
 class Players():
@@ -14,7 +14,7 @@ class Players():
  #maybe a total bet needs to be added rn there is one in the main function
  # but maybe i want to implement it here
 
-    def __init__(self, initial_money, name):
+    def __init__(self, initial_money, name, dealer=None):
         self.money = initial_money
         self.player_hand = []
         self.player_position = []
@@ -25,38 +25,33 @@ class Players():
         self.all_in_bool = False
         self.have_bet = False
         self.name = name
-
+        self.dealer = dealer
+        self.font = pygame.font.Font('../fonts/PixelOperator8.ttf', 24)
 
     def _update(self, big_blind_pos, small_blind_pos):
         #will check the position the big_blind and small_blind in relative to the player
         pass
 
+    def _positions(self, player_index):
+        table_center_x = 1920 // 2 - 75
+        table_center_y = 1080 // 2 - 50
+
+        # Oval dimensions - these may not be right
+        a = 750  # Horizontal radius
+        b = 350
+
+        total_players = self.dealer.num_of_players
+        angle = 2 * math.pi * (player_index / total_players)
+
+        # Calculate position for this player
+        player_x = table_center_x + a * math.cos(angle)
+        player_y = table_center_y + b * math.sin(angle)
+
+        return player_x,player_y
 
     def _hand(self, player_index):
-    #should have a function or logic here to determine position of player
-    #chat gpt says for a oval centerted at (h,k) we need to do
-    # x = h+ a cos(theta) --- a being the horinztal radius
-    # y = k + b sin(theta) --- b being the vertical radius
-    #theta = 2pi/number of player times which player you are currently on
 
-
-        if len(self.player_hand) >= 2:
-            print(f"Player {self.name} has: {self.player_hand[0]}, {self.player_hand[1]}")
-
-            table_center_x = 1920 // 2
-            table_center_y = 1080 // 2
-
-            # Oval dimensions - these may not be right
-            a = 750  # Horizontal radius
-            b = 350
-
-            total_players = 4
-            angle = 2 * math.pi * (player_index / total_players)
-
-            # Calculate position for this player
-            player_x = table_center_x + a * math.cos(angle)
-            player_y = table_center_y + b * math.sin(angle)
-
+            player_x, player_y = self._positions(player_index)
             # Card spacing
             card_spacing = 74
 
@@ -67,8 +62,8 @@ class Players():
                 self.player_rotation.append(0)
 
             # Set positions for each card
-            self.player_hand[0]._set_position(player_x - card_spacing, player_y, 0)
-            self.player_hand[1]._set_position(player_x + card_spacing, player_y, 0)
+            self.player_hand[0]._set_position(player_x - card_spacing, player_y)
+            self.player_hand[1]._set_position(player_x + card_spacing, player_y)
 
             # Show cards for current player
             self.player_hand[0]._load_sprite(True)

@@ -15,6 +15,7 @@ class Dealer():
         self.deck_of_cards = []
         self.discard_pile = []
         self.flop = []
+        self.num_of_players = num_of_players
 
         # Initialize the deck
         self._cards()
@@ -23,7 +24,7 @@ class Dealer():
 
         # Create the players with an initial money amount
         for i in range(num_of_players):
-            self.player_list.append(Players(initial_money=1000, name=names[i]))
+            self.player_list.append(Players(initial_money=1000, name=names[i], dealer=self))
 
     def _update(self):
         pass
@@ -53,14 +54,28 @@ class Dealer():
         # dealers plays first 3 cards on boards
 
         print(f"Flop counter: {flop_counter}")
+        x_pos = 1920//2 + 300
+        y_pos = 1080//2 - 50
+
+        discard_x = x_pos - (62 + (5 + 62)) * 6
+        #I really like this idea look into after all game completed
+        # valid_numbers = list(range(30, 36)) + list(range(125, 131))
+        # random_rotate = random.choice(valid_numbers)
+
+
         if flop_counter < 3:
             # burn a card
+            # self.deck_of_cards[0]._set_position(x_pos, y_pos-100)
             self.discard_pile.append(self.deck_of_cards.pop(0))
+            print(self.discard_pile)
+            self.discard_pile[0]._set_position(discard_x, y_pos)
 
             for i in range(3):
+                x_pos -= (62 + (i + 62))
+
                 self.flop.append(self.deck_of_cards.pop(0))
-                self.flop[i]._set_position(100*i, 400)
-                self.flop[i].is_showing_card = True
+                self.flop[i]._set_position(x_pos, y_pos)
+                self.flop[i]._load_sprite(True)
 
             print("Flop cards:", [str(card) for card in self.flop])
             return False, 3
@@ -69,8 +84,12 @@ class Dealer():
         if flop_counter == 3:
             # burn a card
             self.discard_pile.append(self.deck_of_cards.pop(0))
+            self.discard_pile[-1]._set_position(discard_x, y_pos)
+            self.discard_pile[-1]._load_sprite(False)
 
             self.flop.append(self.deck_of_cards.pop(0))
+            self.flop[flop_counter]._set_position(x_pos - (62 + (3 + 62)) * 4, y_pos)
+            self.flop[flop_counter]._load_sprite(True)
 
             print("Flop cards:", [str(card) for card in self.flop])
             return False, 4
@@ -80,7 +99,12 @@ class Dealer():
             # burn a card
             self.discard_pile.append(self.deck_of_cards.pop(0))
 
+            self.discard_pile[-1]._set_position(discard_x, y_pos)
+            self.discard_pile[-1]._load_sprite(False)
+
             self.flop.append(self.deck_of_cards.pop(0))
+            self.flop[flop_counter]._set_position(x_pos - (62 + (4 + 62)) * 5, y_pos)
+            self.flop[flop_counter]._load_sprite(True)
 
             print("Flop cards:", [str(card) for card in self.flop])
             return True, 0

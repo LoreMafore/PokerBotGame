@@ -23,7 +23,7 @@ class Cards:
         self.type = type
         self.suit = suit
         self.sprite = None
-        self.pos = (0,0)
+        self.pos = (1920//2 + 300, 1080//2 - 50)
         self.width = 64 #64
         self.height = 96 #96
         self.rotate = 0
@@ -42,8 +42,7 @@ class Cards:
         else:
             self.sprite = pygame.image.load(card_back_path)
 
-        self.width = self.sprite.get_width()
-        self.height = self.sprite.get_height()
+        self._set_scale(self.width,self.height)
 
     def _set_position(self, x, y, rotation = 0):
         self.pos = (x,y)
