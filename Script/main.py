@@ -14,6 +14,8 @@ from Card import Cards
 from Dealer import Dealer
 from Player import Players
 
+import globals
+
 
 def _check_all_players_done(player_list, end_of_round, current_highest_bet, pos=0):
     # Base case: we've checked all players
@@ -210,6 +212,7 @@ def _main():
         if play_again.lower() != 'y':
             break
 
+
 def reset_game(dealer):
     # Reset players
     for p in dealer.player_list:
@@ -229,8 +232,11 @@ def reset_game(dealer):
     # Deal two cards to each player
     dealer._dealing()
 
+
 pygame.init()
-screen = pygame.display.set_mode((1920, 1080))
+globals.screen
+# screen = pygame.display.set_mode((1920, 1080))
+
 pygame.display.set_caption("Poker Game")
 clock = pygame.time.Clock()
 running = True
@@ -255,11 +261,13 @@ dealer._dealing()
 flop_counter = 0
 game_phase = "preflop"  # preflop, flop, turn, river, showdown
 
+background = pygame.transform.scale(background, (globals.screen.get_width(), globals.screen.get_height()))
+
 while running:
     # poll for events
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
+            if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
                 running = False  # Changed from pygame.quit() to properly exit the loop
             elif event.key == pygame.K_SPACE:
                 # Progress the game when spacebar is pressed
@@ -284,35 +292,35 @@ while running:
             running = False
 
     # Draw background
-    screen.blit(background, (0, 0))
+    globals.screen.blit(background, (0, 0))
 
     for cards in dealer.deck_of_cards:
         cards._set_scale(96, 144)
-        cards.draw(screen)
+        cards.draw(globals.screen)
 
     for discarded in dealer.discard_pile:
-        discarded.draw(screen)
+        # TODO reposition discard pile
+        discarded.draw(globals.screen)
 
     # Draw all players' cards
     for player in dealer.player_list:
         for card in player.player_hand:
-            card.draw(screen)
+            card.draw(globals.screen)
     # Draw flop cards
     for card in dealer.flop:
-        card.draw(screen)
+        card.draw(globals.screen)
 
     # Display game phase
     font = pygame.font.Font('../fonts/PixelOperator8.ttf', 24)
     phase_text = font.render(f"Game Phase: {game_phase}", True, (255, 255, 255))
-    screen.blit(phase_text, (10, 10))
+    globals.screen.blit(phase_text, (10, 10))
 
     # Display instructions
-    instructions = font.render("Press SPACE to advance game, ESC to quit", True, (255, 255, 255))
-    screen.blit(instructions, (10, 40))
+    instructions = font.render("Press SPACE to advance game, ESC/Q to quit", True, (255, 255, 255))
+    globals.screen.blit(instructions, (10, 40))
 
     # Update the display
     pygame.display.flip()
     clock.tick(60)  # limits FPS to 60
 
 pygame.quit()
-

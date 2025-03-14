@@ -6,13 +6,17 @@ Made By Conrad Mercer 3/3/2025
 import math
 
 import pygame.math
-#from Dealer import Dealer
+
+import globals
+
+
+# from Dealer import Dealer
 
 
 class Players():
- 
- #maybe a total bet needs to be added rn there is one in the main function
- # but maybe i want to implement it here
+
+    # maybe a total bet needs to be added rn there is one in the main function
+    # but maybe i want to implement it here
 
     def __init__(self, initial_money, name, dealer=None):
         self.money = initial_money
@@ -29,16 +33,20 @@ class Players():
         self.font = pygame.font.Font('../fonts/PixelOperator8.ttf', 24)
 
     def _update(self, big_blind_pos, small_blind_pos):
-        #will check the position the big_blind and small_blind in relative to the player
+        # will check the position the big_blind and small_blind in relative to the player
         pass
 
     def _positions(self, player_index):
-        table_center_x = 1920 // 2 - 75
-        table_center_y = 1080 // 2 - 50
+
+        table_center_x = globals.screen.get_width() / 2
+        table_center_y = globals.screen.get_height() / 2
 
         # Oval dimensions - these may not be right
-        a = 750  # Horizontal radius
-        b = 350
+        # a = 750  # Horizontal radius
+        # b = 350
+
+        a = globals.screen.get_width() // 2.5
+        b = globals.screen.get_height() // 3.0
 
         total_players = self.dealer.num_of_players
         angle = 2 * math.pi * (player_index / total_players)
@@ -47,41 +55,44 @@ class Players():
         player_x = table_center_x + a * math.cos(angle)
         player_y = table_center_y + b * math.sin(angle)
 
-        return player_x,player_y
+        # Don't ask me why...
+        player_x -= (190 // 4)
+        player_y -= (270 // 4)
+
+        return player_x, player_y
 
     def _hand(self, player_index):
 
-            player_x, player_y = self._positions(player_index)
-            # Card spacing
-            card_spacing = 74
+        player_x, player_y = self._positions(player_index)
+        # Card spacing
+        card_spacing = 74
 
-            # Initialize player_position and player_rotation if empty
-            while len(self.player_position) < 2:
-                self.player_position.append((0, 0))
-            while len(self.player_rotation) < 2:
-                self.player_rotation.append(0)
+        # Initialize player_position and player_rotation if empty
+        while len(self.player_position) < 2:
+            self.player_position.append((0, 0))
+        while len(self.player_rotation) < 2:
+            self.player_rotation.append(0)
 
-            # Set positions for each card
-            self.player_hand[0]._set_position(player_x - card_spacing, player_y)
-            self.player_hand[1]._set_position(player_x + card_spacing, player_y)
+        # Set positions for each card
+        self.player_hand[0]._set_position(player_x - card_spacing, player_y)
+        self.player_hand[1]._set_position(player_x + card_spacing, player_y)
 
-            # Show cards for current player
-            self.player_hand[0]._load_sprite(True)
-            self.player_hand[1]._load_sprite(True)
+        # Show cards for current player
+        self.player_hand[0]._load_sprite(True)
+        self.player_hand[1]._load_sprite(True)
 
-            # Set scale for each card
-            self.player_hand[0]._set_scale(96, 144)
-            self.player_hand[1]._set_scale(96, 144)
+        # Set scale for each card
+        self.player_hand[0]._set_scale(96, 144)
+        self.player_hand[1]._set_scale(96, 144)
 
-
-            # Update positions in player_position array
-            self.player_position[0] = (player_x - card_spacing, player_y)
-            self.player_position[1] = (player_x + card_spacing, player_y)
+        # Update positions in player_position array
+        self.player_position[0] = (player_x - card_spacing, player_y)
+        self.player_position[1] = (player_x + card_spacing, player_y)
 
     def _raise(self, current_highest_bet):
         bet = int(input("Raise Amount:"))
         if bet >= self.money:
-            #will change this for pygame implementation
+            # will change this for pygame implementation
             print("You went all in")
             current_highest_bet = self._all_in()
             self.have_bet = True
@@ -107,12 +118,11 @@ class Players():
     def _call(self, current_highest_bet):
         print("call")
         if current_highest_bet != 0:
-            #this needs to check if you will go all in or not
+            # this needs to check if you will go all in or not
             self.money -= current_highest_bet - self.bet
             self.bet += current_highest_bet
             self.have_bet = True
-            return  current_highest_bet
-
+            return current_highest_bet
 
     def _fold(self, discard_pile):
         print("fold")
@@ -134,7 +144,6 @@ class Players():
         else:
             return current_highest_bet
 
-
     # The actual player input on their turn
 
     def _player_turn(self, discard_pile, current_highest_bet, total_bet):
@@ -142,11 +151,12 @@ class Players():
         old_bet = self.bet
 
         # Skip the players turn if they've gone all in, folded, or have already bet the right amount
-        if self.fold_bool == True or self.all_in_bool == True or (self.bet == current_highest_bet and self.have_bet == True):
+        if self.fold_bool == True or self.all_in_bool == True or (
+                self.bet == current_highest_bet and self.have_bet == True):
             return total_bet, current_highest_bet
 
         else:
-            print(f"\n{self.name} has",self.money, "dollars.")
+            print(f"\n{self.name} has", self.money, "dollars.")
             print(f"Player Hand: {[str(card) for card in self.player_hand]}")
             print(f"The bet was: ", current_highest_bet)
             print(f"The pot is : {total_bet}")
@@ -158,11 +168,11 @@ class Players():
             call_amount = current_highest_bet - self.bet;
 
             print("What do you want to do (enter index)?\n"
-                "1: Fold\n"
-                f"{'2' if call_amount > 0 else 'X'}: Call\n"
-                f"{'X' if not can_check else '3'}: Check\n"
-                "4: Raise\n"
-                "5: All in")
+                  "1: Fold\n"
+                  f"{'2' if call_amount > 0 else 'X'}: Call\n"
+                  f"{'X' if not can_check else '3'}: Check\n"
+                  "4: Raise\n"
+                  "5: All in")
 
             player_action = int(input("Answer: "))
 
@@ -181,4 +191,4 @@ class Players():
             # how much is being added to the pot
             total_bet += abs(self.bet - old_bet)
 
-            return  total_bet, current_highest_bet
+            return total_bet, current_highest_bet

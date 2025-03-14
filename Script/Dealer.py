@@ -7,7 +7,7 @@ import random
 
 from Card import Cards
 from Player import Players
-
+import globals
 
 class Dealer():
     def __init__(self, num_of_players):
@@ -54,8 +54,8 @@ class Dealer():
         # dealers plays first 3 cards on boards
 
         print(f"Flop counter: {flop_counter}")
-        x_pos = 1920//2 + 300
-        y_pos = 1080//2 - 50
+        x_pos = globals.screen.get_width()//2 + 300
+        y_pos = globals.screen.get_height()//2 - 50
 
         discard_x = x_pos - (62 + (5 + 62)) * 6
         #I really like this idea look into after all game completed
