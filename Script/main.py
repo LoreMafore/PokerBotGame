@@ -294,18 +294,22 @@ while running:
     # Draw background
     globals.screen.blit(background, (0, 0))
 
+    # drawing the draw cards is cool but is a lot of effort for something
+    # that doesn't really work. same with drawing the discard pile
     for cards in dealer.deck_of_cards:
-        cards._set_scale(96, 144)
-        cards.draw(globals.screen)
+        # cards._set_scale(96, 144)
+        # cards.draw(globals.screen)
+        continue
 
     for discarded in dealer.discard_pile:
-        # TODO reposition discard pile
-        discarded.draw(globals.screen)
+        # discarded.draw(globals.screen)
+        continue
 
     # Draw all players' cards
     for player in dealer.player_list:
         for card in player.player_hand:
             card.draw(globals.screen)
+
     # Draw flop cards
     for card in dealer.flop:
         card.draw(globals.screen)

@@ -55,9 +55,9 @@ class Players():
         player_x = table_center_x + a * math.cos(angle)
         player_y = table_center_y + b * math.sin(angle)
 
-        # Don't ask me why...
-        player_x -= (190 // 4)
-        player_y -= (270 // 4)
+        # offset by card width / height
+        player_x -= (96 // 2)
+        player_y -= (144 // 2)
 
         return player_x, player_y
 
@@ -82,8 +82,8 @@ class Players():
         self.player_hand[1]._load_sprite(True)
 
         # Set scale for each card
-        self.player_hand[0]._set_scale(96, 144)
-        self.player_hand[1]._set_scale(96, 144)
+        # self.player_hand[0]._set_scale(96, 144)
+        # self.player_hand[1]._set_scale(96, 144)
 
         # Update positions in player_position array
         self.player_position[0] = (player_x - card_spacing, player_y)

@@ -5,9 +5,12 @@ Made By Conrad Mercer 3/3/2025
 """
 import random
 
+import pygame
+
 from Card import Cards
 from Player import Players
 import globals
+
 
 class Dealer():
     def __init__(self, num_of_players):
@@ -45,7 +48,6 @@ class Dealer():
                 cards += 1
             player._hand(i)
 
-
     def shuffle_deck(self):
         random.shuffle(self.deck_of_cards)
 
@@ -54,21 +56,30 @@ class Dealer():
         # dealers plays first 3 cards on boards
 
         print(f"Flop counter: {flop_counter}")
-        x_pos = globals.screen.get_width()//2 + 300
-        y_pos = globals.screen.get_height()//2 - 50
+        x_pos = globals.screen.get_width() // 2 + 300
+        y_pos = globals.screen.get_height() // 2 - 50
 
-        discard_x = x_pos - (62 + (5 + 62)) * 6
-        #I really like this idea look into after all game completed
+        padding = 10
+        cw = 62  # 96  # 144
+        # cw = self.flop[0].sprite.get_width()
+
+        discard_x = x_pos + (padding * cw * 2)
+        # disard_x = -50
+        # discard_x = x_pos - (62 + (5 + 62)) * 6
+
+        # I really like this idea look into after all game completed
         # valid_numbers = list(range(30, 36)) + list(range(125, 131))
         # random_rotate = random.choice(valid_numbers)
-
 
         if flop_counter < 3:
             # burn a card
             # self.deck_of_cards[0]._set_position(x_pos, y_pos-100)
             self.discard_pile.append(self.deck_of_cards.pop(0))
             print(self.discard_pile)
-            self.discard_pile[0]._set_position(discard_x, y_pos)
+            # self.discard_pile[0]._set_position(discard_x, y_pos)
+            self.discard_pile[0]._set_position(-1000, 0)
+
+            pygame.transform.rotate(self.discard_pile[0].sprite, random.randint(0, 180))
 
             for i in range(3):
                 x_pos -= (62 + (i + 62))
@@ -84,8 +95,9 @@ class Dealer():
         if flop_counter == 3:
             # burn a card
             self.discard_pile.append(self.deck_of_cards.pop(0))
-            self.discard_pile[-1]._set_position(discard_x, y_pos)
+            # self.discard_pile[-1]._set_position(discard_x, y_pos)
             self.discard_pile[-1]._load_sprite(False)
+            self.discard_pile[-1]._set_position(-1000, 0)
 
             self.flop.append(self.deck_of_cards.pop(0))
             self.flop[flop_counter]._set_position(x_pos - (62 + (3 + 62)) * 4, y_pos)
@@ -101,6 +113,7 @@ class Dealer():
 
             self.discard_pile[-1]._set_position(discard_x, y_pos)
             self.discard_pile[-1]._load_sprite(False)
+            self.discard_pile[-1]._set_position(-1000, 0)
 
             self.flop.append(self.deck_of_cards.pop(0))
             self.flop[flop_counter]._set_position(x_pos - (62 + (4 + 62)) * 5, y_pos)
