@@ -185,8 +185,10 @@ def _turn_order(player_list, small_blind_pos, big_blind_pos, discard_pile, curre
 
 def _update(screen, dealer, background, game_phase, small_blind_pos=None, big_blind_pos=None, current_player=None,
             current_highest_bet=0, total_pot=0):
-    # Process events without clearing the event queue
+    # Create a copy of events to prevent clearing the event queue
+    events = []
     for event in pygame.event.get():
+        events.append(event)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
@@ -199,31 +201,39 @@ def _update(screen, dealer, background, game_phase, small_blind_pos=None, big_bl
     # Draw background
     screen.blit(background, (0, 0))
 
-
+    # Move discard pile out of view (don't need to draw them)
     for card in dealer.discard_pile:
-        card._set_position(1000, 1000)
+        card._set_position(2000, 2000)  # Far off-screen
 
     # Draw all players' cards and player info
     for i, player in enumerate(dealer.player_list):
         # Draw cards if player has them and isn't broke
         if player.player_hand and not player.broke and not player.fold_bool:
             for card in player.player_hand:
-                card.is_showing_card = True  # For now, show all cards
+                card.is_showing_card = True  # Show all cards
                 card.draw(screen)
 
             # Draw player info between cards
-            _draw_player_info(screen, player, i, small_blind_pos, big_blind_pos)
+            _draw_player_info(screen, player, i, small_blind_pos, big_blind_pos,
+                           (player == current_player))  # Pass whether this is current player
 
     # Draw deck (only draw the top card to represent the deck)
     if dealer.deck_of_cards:
+        # Set a specific position for the deck
+        deck_x = 1920 // 2 + 400
+        deck_y = 1080 // 2 - 50
+        dealer.deck_of_cards[0]._set_position(deck_x, deck_y)
         dealer.deck_of_cards[0].draw(screen)
 
-    # Draw discard pile (only draw the top card)
-    if dealer.discard_pile:
-        dealer.discard_pile[0].draw(screen)
+    # Don't draw the discard pile at all
+    # Remove or comment out these lines:
+    # if dealer.discard_pile:
+    #     dealer.discard_pile[0].draw(screen)
 
-    # Draw flop cards
+    # Draw flop cards - ensure flop cards are always shown face up
     for card in dealer.flop:
+        card.is_showing_card = True
+        card._load_sprite(True)  # Force load face-up sprite
         card.draw(screen)
 
     # Display game phase and pot in top left
@@ -239,13 +249,16 @@ def _update(screen, dealer, background, game_phase, small_blind_pos=None, big_bl
     bet_text = font.render(f"Current Bet: ${current_highest_bet}", True, (255, 255, 255))
     screen.blit(bet_text, (10, 70))
 
-    # Display current player if available
+    # Display current player if available - make this more visible and persistent
     if current_player:
         current_player_text = font.render(f"Current Player: {current_player.name}", True, (255, 255, 100))
-        screen.blit(current_player_text, (10, 100))  # Moved down to make room for bet text
+        # Add a background for better visibility
+        text_rect = current_player_text.get_rect(topleft=(10, 100))
+        pygame.draw.rect(screen, (50, 50, 50), text_rect.inflate(20, 10))
+        screen.blit(current_player_text, (10, 100))
 
 
-def _draw_player_info(screen, player, player_index, small_blind_pos=None, big_blind_pos=None):
+def _draw_player_info(screen, player, player_index, small_blind_pos=None, big_blind_pos=None, is_current=False):
     # Calculate position based on player index
     player_x, player_y = player._positions(player_index)
 
@@ -270,7 +283,7 @@ def _draw_player_info(screen, player, player_index, small_blind_pos=None, big_bl
     font = pygame.font.SysFont('Arial', 16)
 
     # Create text surfaces
-    name_text = font.render(f"{player.name:^20}", True, (255, 0, 0))
+    name_text = font.render(f"{player.name:^20}", True, (255, 0, 0) if not is_current else (255, 255, 0))
     bet_text = font.render(f"Bet: ${player.bet}", True, (255, 255, 255))
     money_text = font.render(f"Money: ${player.money}", True, (255, 255, 255))
     status_text = font.render(f"{status}", True, color)
@@ -286,12 +299,17 @@ def _draw_player_info(screen, player, player_index, small_blind_pos=None, big_bl
         blind_text = font.render("BIG BLIND", True, (255, 165, 0))  # Orange for big blind
 
     # Position text to the right of the right card
-    # Assuming card_spacing is around 74 (from _hand method in Player.py)
     card_spacing = 74
     text_x = player_x + 15  # Move to the right of the right card
-
-    # Position text higher up than before
     text_y = player_y - 80
+
+    # Draw background highlight for current player
+    if is_current:
+        info_width = 150
+        info_height = 100
+        pygame.draw.rect(screen, (50, 50, 100),
+                      (text_x - 5, text_y - 5, info_width, info_height),
+                      border_radius=5)
 
     # Draw text left-aligned
     screen.blit(name_text, (text_x, text_y))
@@ -306,6 +324,10 @@ def _draw_player_info(screen, player, player_index, small_blind_pos=None, big_bl
     if blind_text:
         text_y += 16
         screen.blit(blind_text, (text_x, text_y))
+
+    # Additional visual indicator for current player
+    if is_current:
+        pygame.draw.circle(screen, (255, 255, 0), (text_x - 10, player_y), 5)
 
 
 def _game_logic(screen, dealer, background):
@@ -422,12 +444,12 @@ def _game_logic(screen, dealer, background):
                                                      screen, dealer, background, game_phase)
 
         # Get all active players (not folded)
-        active_players = sum(1 for player in dealer.player_list if not player.fold_bool)
+        active_players = sum(1 for player in dealer.player_list if not player.fold_bool and not player.broke)
 
         # If only one player remains, award pot and skip to next hand
         if active_players <= 1:
             for player in dealer.player_list:
-                if not player.fold_bool:
+                if not player.fold_bool and not player.broke:
                     # Award winnings to remaining player
                     player.money += total_bet
                     print(f"{player.name} wins {total_bet}!")
@@ -467,7 +489,7 @@ def _game_logic(screen, dealer, background):
                                                              screen, dealer, background, game_phase)
 
                 # Check active players after flop
-                active_players = sum(1 for player in dealer.player_list if not player.fold_bool)
+                active_players = sum(1 for player in dealer.player_list if not player.fold_bool and not player.broke)
 
             # Turn
             if active_players > 1:
@@ -497,7 +519,7 @@ def _game_logic(screen, dealer, background):
                                                              screen, dealer, background, game_phase)
 
                 # Check active players after turn
-                active_players = sum(1 for player in dealer.player_list if not player.fold_bool)
+                active_players = sum(1 for player in dealer.player_list if not player.fold_bool and not player.broke)
 
             # River
             if active_players > 1:
@@ -527,10 +549,10 @@ def _game_logic(screen, dealer, background):
                                                              screen, dealer, background, game_phase)
 
             # Determine the winner
-            active_players = sum(1 for player in dealer.player_list if not player.fold_bool)
+            active_players = sum(1 for player in dealer.player_list if not player.fold_bool and not player.broke)
             if active_players <= 1:
                 for player in dealer.player_list:
-                    if not player.fold_bool:
+                    if not player.fold_bool and not player.broke:
                         player.money += total_bet
                         print(f"{player.name} wins ${total_bet} as everyone else folded!")
                         break
@@ -543,7 +565,7 @@ def _game_logic(screen, dealer, background):
 
                 print("\n=== SHOWDOWN ===")
                 for player in dealer.player_list:
-                    if not player.fold_bool:
+                    if not player.fold_bool and not player.broke:
                         print(f"{player.name}'s hand: {[str(card) for card in player.player_hand]}")
 
                 # Use the manual winner selection
