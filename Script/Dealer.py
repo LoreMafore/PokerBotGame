@@ -23,7 +23,7 @@ class Dealer():
         self._cards()
 
         # TODO FILL OUT NAMES HERE
-        names = ["Alice", "Bob", "Charlie", "Diana", "Ethan", "Fiona", "George", "Hannah", "Ian", "Julia"]
+        names = ["Connor", "Colllin", "Isaac", "Thomas", "Kolbe", "Tobin", "Mark", "///", "---", "..."]
 
         # Create the players with an initial money amount
         for i in range(num_of_players):
