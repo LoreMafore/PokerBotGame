@@ -54,71 +54,67 @@ class Dealer():
     # TODO ADD display cards here and burning cards
     def _play_on_board(self, flop_counter):
         # dealers plays first 3 cards on boards
-
         print(f"Flop counter: {flop_counter}")
         x_pos = 1920 // 2 + 300
         y_pos = 1080 // 2 - 50
 
         padding = 10
-        cw = 62  # 96  # 144
-        # cw = self.flop[0].sprite.get_width()
-
-        # discard_x = x_pos + (padding * cw * 2)
-        # disard_x = -50
+        cw = 62  # Card width
         discard_x = x_pos - (62 + (5 + 62)) * 6
 
-        # I really like this idea look into after all game completed
-        # valid_numbers = list(range(30, 36)) + list(range(125, 131))
-        # random_rotate = random.choice(valid_numbers)
-
+        # Pre-flop (first 3 cards)
         if flop_counter < 3:
             # burn a card
-            self.deck_of_cards[0]._set_position(x_pos, y_pos - 100)
+            self.deck_of_cards[0]._set_position(discard_x, y_pos)
             self.discard_pile.append(self.deck_of_cards.pop(0))
-            print(self.discard_pile)
-            self.discard_pile[0]._set_position(discard_x, y_pos)
 
-            pygame.transform.rotate(self.discard_pile[0].sprite, random.randint(0, 180))
+            # Make sure flop array is clear
+            self.flop = []
 
             for i in range(3):
                 x_pos -= (62 + (i + 62))
 
-                self.flop.append(self.deck_of_cards.pop(0))
-                self.flop[i]._set_position(x_pos, y_pos)
-                self.flop[i]._load_sprite(True)
+                # Add new card from the deck
+                new_card = self.deck_of_cards.pop(0)
+                new_card._set_position(x_pos, y_pos)
+                new_card.is_showing_card = True  # Ensure card is shown face up
+                new_card._load_sprite(True)  # Force load face-up sprite
+                self.flop.append(new_card)
 
             print("Flop cards:", [str(card) for card in self.flop])
             return False, 3
 
-        # dealers play 4th card
+        # Turn (4th card)
         if flop_counter == 3:
             # burn a card
+            self.deck_of_cards[0]._set_position(discard_x, y_pos)
             self.discard_pile.append(self.deck_of_cards.pop(0))
-            self.discard_pile[-1]._set_position(discard_x, y_pos)
-            self.discard_pile[-1]._load_sprite(False)
 
-            self.flop.append(self.deck_of_cards.pop(0))
-            self.flop[flop_counter]._set_position(x_pos - (62 + (3 + 62)) * 4, y_pos)
-            self.flop[flop_counter]._load_sprite(True)
+            # Add 4th card
+            new_card = self.deck_of_cards.pop(0)
+            new_card._set_position(x_pos - (62 + (3 + 62)) * 4, y_pos)
+            new_card.is_showing_card = True  # Ensure card is shown face up
+            new_card._load_sprite(True)  # Force load face-up sprite
+            self.flop.append(new_card)
 
-            print("Flop cards:", [str(card) for card in self.flop])
+            print("Turn card:", str(self.flop[-1]))
             return False, 4
 
-        # dealers play 5th card
+        # River (5th card)
         if flop_counter == 4:
             # burn a card
+            self.deck_of_cards[0]._set_position(discard_x, y_pos)
             self.discard_pile.append(self.deck_of_cards.pop(0))
 
-            self.discard_pile[-1]._set_position(discard_x, y_pos)
-            self.discard_pile[-1]._load_sprite(False)
+            # Add 5th card
+            new_card = self.deck_of_cards.pop(0)
+            new_card._set_position(x_pos - (62 + (4 + 62)) * 5, y_pos)
+            new_card.is_showing_card = True  # Ensure card is shown face up
+            new_card._load_sprite(True)  # Force load face-up sprite
+            self.flop.append(new_card)
 
-            self.flop.append(self.deck_of_cards.pop(0))
-            self.flop[flop_counter]._set_position(x_pos - (62 + (4 + 62)) * 5, y_pos)
-            self.flop[flop_counter]._load_sprite(True)
-
-            print("Flop cards:", [str(card) for card in self.flop])
+            print("River card:", str(self.flop[-1]))
             return True, 0
-        pass
 
     # New manual winner selection function
     def _check_winner(self):

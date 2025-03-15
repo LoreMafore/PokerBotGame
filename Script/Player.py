@@ -84,8 +84,8 @@ class Players():
         self.player_position[1] = (player_x + card_spacing, player_y)
 
     def _raise(self, current_highest_bet, amount):
-        # Validate the raise amount
-        bet = amount
+        # Ensure amount is an integer
+        bet = int(amount)
 
         # All in case
         if bet >= self.money + self.bet:
@@ -139,8 +139,14 @@ class Players():
 
     def _fold(self, discard_pile):
         print(f"{self.name} folds")
-        while self.player_hand:
-            discard_pile.append(self.player_hand.pop(0))
+
+        # Move all cards far off-screen before adding to discard pile
+        for card in self.player_hand:
+            card._set_position(20000, 20000)  # Extremely far off-screen
+            discard_pile.append(card)
+
+        # Clear the player's hand
+        self.player_hand = []
         self.fold_bool = True
         return 0  # No change to current_highest_bet
 
@@ -166,7 +172,7 @@ class Players():
         # Force fold if current_highest_bet exceeds the bot's money
         if current_highest_bet > self.money:
             # If "fold" is not in options, return whatever is available, but logically should include fold
-            return "fold" if "fold" in options else random.choice(list(options)), 0
+            return "FOLD" if "FOLD" in options else random.choice(list(options)), 0
         else:
             action = random.choice(list(options))
 
@@ -188,7 +194,8 @@ class Players():
                         return self.get_check_or_call(options)
 
                 # Return a random amount between min_raise and max_raise
-                return action, random.randint(0, max_raise - current_highest_bet)
+                # Ensure the raise amount is an integer
+                return action, int(random.randint(min(min_raise, max_raise), max_raise) - current_highest_bet)
             elif action == "ALLIN":
                 # Reduce the chance of going all-in
                 if random.random() < 0.1:  # Only 10% chance to actually go all-in
@@ -238,10 +245,14 @@ class Players():
 
         # Check for suits on hand
         for card in self.player_hand:
-            hearts += card.suit == "H"
-            clubs += card.suit == "C"
-            spades += card.suit == "S"
-            diamonds += card.suit == "D"
+            if card.suit == 1:  # Hearts
+                hearts += 1
+            elif card.suit == 2:  # Clubs
+                clubs += 1
+            elif card.suit == 0:  # Spades
+                spades += 1
+            elif card.suit == 3:  # Diamonds
+                diamonds += 1
 
         stay_in = 0
 
@@ -253,10 +264,14 @@ class Players():
         # its a good idea to stay in
         if len(flop) >= 3:
             for card in flop:
-                hearts += card.suit == "H"
-                clubs += card.suit == "C"
-                spades += card.suit == "S"
-                diamonds += card.suit == "D"
+                if card.suit == 1:  # Hearts
+                    hearts += 1
+                elif card.suit == 2:  # Clubs
+                    clubs += 1
+                elif card.suit == 0:  # Spades
+                    spades += 1
+                elif card.suit == 3:  # Diamonds
+                    diamonds += 1
             # These numbers include own hand
             stay_in += (hearts > 4 or clubs > 4 or spades > 4 or diamonds > 4)
 
@@ -284,18 +299,18 @@ class Players():
             # Bet a lot more if we're dealing with a pair of face cards or
             # have a three pair or better
             if max_type > 10 or max_count >= 3:
-                return ("RAISE", self.money / 5) if self.money > 0 else self.get_check_or_call(options)
+                return ("RAISE", int(self.money / 5)) if self.money > 0 else self.get_check_or_call(options)
 
             # two pair low card isn't great, but good to bet on
             # early game
             if max_type < 6 and len(flop) < 4:
-                return ("RAISE", self.money / 10) if self.money > 0 else self.get_check_or_call(options)
+                return ("RAISE", int(self.money / 10)) if self.money > 0 else self.get_check_or_call(options)
 
             # It's a good bet
             if total_pot < 20:
-                return ("RAISE", self.money / 10) if self.money > 0 else self.get_check_or_call(options)
+                return ("RAISE", int(self.money / 10)) if self.money > 0 else self.get_check_or_call(options)
 
-        if stay_in <= 1 and current_highest_bet > self.money:
+        if stay_in <= 1 and current_highest_bet >= self.money:
             return ("FOLD", 0)
 
         if (stay_in > 0):
@@ -303,8 +318,7 @@ class Players():
 
         entropy = random.randint(0, 11) / 10.0
         if (entropy >= .4):
-            return ("RAISE", random.randint(1, self.money)) if self.money > 0 else self.get_check_or_call(options)
-
+            return ("RAISE", int(random.randint(1, self.money))) if self.money > 0 else self.get_check_or_call(options)
 
         return ("FOLD", 0)
 
@@ -368,6 +382,8 @@ class Players():
                 current_highest_bet = self._check(current_highest_bet)
             elif player_action == 4:
                 # We want to raise here
+                # Ensure raise_amount is an integer
+                raise_amount = int(raise_amount)
                 if raise_amount <= 0:
                     # Invalid raise amount, default to minimum raise
                     raise_amount = current_highest_bet + 1
