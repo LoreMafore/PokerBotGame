@@ -610,7 +610,7 @@ def _main():
         background.fill((0, 100, 0))  # Dark green background
 
     # Initialize the dealer with players
-    dealer = Dealer(6)
+    dealer = Dealer(7)
 
     # Position the cards for each player once at the start
     for player_index, player in enumerate(dealer.player_list):
