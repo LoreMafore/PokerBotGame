@@ -119,7 +119,8 @@ def _turn_order(player_list, small_blind_pos, big_blind_pos, discard_pile, curre
         current_player = player_list[current_player_index]
 
         # Update the display before getting player input
-        _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, current_player, current_highest_bet, total_bet)
+        _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, current_player,
+                current_highest_bet, total_bet)
         pygame.display.flip()
 
         # Skip players who are broke
@@ -142,7 +143,8 @@ def _turn_order(player_list, small_blind_pos, big_blind_pos, discard_pile, curre
 
         # Handle player's turn
         old_highest_bet = current_highest_bet
-        total_bet, current_highest_bet = current_player._player_turn(discard_pile, current_highest_bet, total_bet, dealer.flop)
+        total_bet, current_highest_bet = current_player._player_turn(discard_pile, current_highest_bet, total_bet,
+                                                                     dealer.flop)
 
         # Mark that this player has had a chance to bet
         current_player.have_bet = True
@@ -159,7 +161,8 @@ def _turn_order(player_list, small_blind_pos, big_blind_pos, discard_pile, curre
         # Add 5-second delay between moves
         for i in range(50):  # 50 * 0.1 = 5 seconds
             # Update display during delay to show the latest state
-            _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet, total_bet)
+            _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet,
+                    total_bet)
             pygame.display.flip()
 
             # Check for escape key during delay
@@ -180,7 +183,8 @@ def _turn_order(player_list, small_blind_pos, big_blind_pos, discard_pile, curre
     return total_bet, current_highest_bet
 
 
-def _update(screen, dealer, background, game_phase, small_blind_pos=None, big_blind_pos=None, current_player=None, current_highest_bet=0, total_pot=0):
+def _update(screen, dealer, background, game_phase, small_blind_pos=None, big_blind_pos=None, current_player=None,
+            current_highest_bet=0, total_pot=0):
     # Process events without clearing the event queue
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
@@ -195,10 +199,14 @@ def _update(screen, dealer, background, game_phase, small_blind_pos=None, big_bl
     # Draw background
     screen.blit(background, (0, 0))
 
+
+    for card in dealer.discard_pile:
+        card._set_position(1000, 1000)
+
     # Draw all players' cards and player info
     for i, player in enumerate(dealer.player_list):
         # Draw cards if player has them and isn't broke
-        if player.player_hand and not player.broke:
+        if player.player_hand and not player.broke and not player.fold_bool:
             for card in player.player_hand:
                 card.is_showing_card = True  # For now, show all cards
                 card.draw(screen)
@@ -354,7 +362,8 @@ def _game_logic(screen, dealer, background):
         dealer._dealing()
 
         # Update display after dealing
-        _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet, total_bet)
+        _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet,
+                total_bet)
         pygame.display.flip()
 
         # Output initial hands to console
@@ -394,7 +403,8 @@ def _game_logic(screen, dealer, background):
         print(f"Player {dealer.player_list[big_blind_pos].name} posts big blind: {big_blind}")
 
         # Update display after blinds
-        _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet, total_bet)
+        _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet,
+                total_bet)
         pygame.display.flip()
 
         # Pre-flop betting round
@@ -422,14 +432,16 @@ def _game_logic(screen, dealer, background):
                     player.money += total_bet
                     print(f"{player.name} wins {total_bet}!")
                     game_phase = "End of Hand"
-                    _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet, total_bet)
+                    _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None,
+                            current_highest_bet, total_bet)
                     pygame.display.flip()
                     time.sleep(2)  # Pause to show the winner
                     break
         else:
             # Continue with flop if more than one player still active
             game_phase = "Flop"
-            _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet, total_bet)
+            _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet,
+                    total_bet)
             pygame.display.flip()
 
             # Flop
@@ -438,7 +450,8 @@ def _game_logic(screen, dealer, background):
             game_complete, flop_counter = result
 
             # Update display after flop
-            _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet, total_bet)
+            _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet,
+                    total_bet)
             pygame.display.flip()
 
             if active_players > 1:
@@ -459,7 +472,8 @@ def _game_logic(screen, dealer, background):
             # Turn
             if active_players > 1:
                 game_phase = "Turn"
-                _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet, total_bet)
+                _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None,
+                        current_highest_bet, total_bet)
                 pygame.display.flip()
 
                 print("\n=== TURN ===")
@@ -467,7 +481,8 @@ def _game_logic(screen, dealer, background):
                 game_complete, flop_counter = result
 
                 # Update display after turn
-                _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet, total_bet)
+                _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None,
+                        current_highest_bet, total_bet)
                 pygame.display.flip()
 
                 # Reset bets for post-turn betting round
@@ -487,7 +502,8 @@ def _game_logic(screen, dealer, background):
             # River
             if active_players > 1:
                 game_phase = "River"
-                _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet, total_bet)
+                _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None,
+                        current_highest_bet, total_bet)
                 pygame.display.flip()
 
                 print("\n=== RIVER ===")
@@ -495,7 +511,8 @@ def _game_logic(screen, dealer, background):
                 game_complete, flop_counter = result
 
                 # Update display after river
-                _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet, total_bet)
+                _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None,
+                        current_highest_bet, total_bet)
                 pygame.display.flip()
 
                 # Reset bets for post-river betting round
@@ -520,7 +537,8 @@ def _game_logic(screen, dealer, background):
             else:
                 # Show all active players' hands
                 game_phase = "Showdown"
-                _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet, total_bet)
+                _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None,
+                        current_highest_bet, total_bet)
                 pygame.display.flip()
 
                 print("\n=== SHOWDOWN ===")
@@ -538,7 +556,8 @@ def _game_logic(screen, dealer, background):
 
                 # Update display to show winner
                 game_phase = f"Winner: {winner.name if winner else 'None'}"
-                _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None, current_highest_bet, total_bet)
+                _update(screen, dealer, background, game_phase, small_blind_pos, big_blind_pos, None,
+                        current_highest_bet, total_bet)
                 pygame.display.flip()
                 time.sleep(2)  # Pause to show the winner
 
@@ -548,7 +567,6 @@ def _game_logic(screen, dealer, background):
 
         # Small delay before the next hand
         # time.sleep(1.5)
-
 
 
 def _main():

@@ -136,6 +136,9 @@ class Dealer():
 
         # Show all active players and their hands
         print("\n=== SHOWDOWN - SELECT WINNER ===")
+
+        print(f"Community cards: {[str(card) for card in self.flop]}")
+
         for i, player in enumerate(active_players):
             print(f"{i + 1}: {player.name} with hand: {[str(card) for card in player.player_hand]}")
 
