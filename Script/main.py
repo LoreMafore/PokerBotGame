@@ -142,7 +142,7 @@ def _turn_order(player_list, small_blind_pos, big_blind_pos, discard_pile, curre
 
         # Handle player's turn
         old_highest_bet = current_highest_bet
-        total_bet, current_highest_bet = current_player._player_turn(discard_pile, current_highest_bet, total_bet)
+        total_bet, current_highest_bet = current_player._player_turn(discard_pile, current_highest_bet, total_bet, dealer.flop)
 
         # Mark that this player has had a chance to bet
         current_player.have_bet = True
@@ -569,7 +569,7 @@ def _main():
         background.fill((0, 100, 0))  # Dark green background
 
     # Initialize the dealer with players
-    dealer = Dealer(4)
+    dealer = Dealer(6)
 
     # Position the cards for each player once at the start
     for player_index, player in enumerate(dealer.player_list):

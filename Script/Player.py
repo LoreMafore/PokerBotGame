@@ -3,6 +3,9 @@ Made By Conrad Mercer 3/3/2025
 """
 
 import math
+import random
+
+import Card
 
 import pygame.math
 
@@ -24,7 +27,7 @@ class Players():
         self.have_bet = False
         self.name = name
         self.dealer = dealer
-        #self.font = pygame.font.Font('../fonts/PixelOperator8.ttf', 24)
+        # self.font = pygame.font.Font('../fonts/PixelOperator8.ttf', 24)
 
     def _update(self, big_blind_pos, small_blind_pos):
         # will check the position the big_blind and small_blind in relative to the player
@@ -38,7 +41,6 @@ class Players():
         # Oval dimensions - these may not be right
         a = 750  # Horizontal radius
         b = 350
-
 
         total_players = self.dealer.num_of_players
         angle = 2 * math.pi * (player_index / total_players)
@@ -81,25 +83,26 @@ class Players():
         self.player_position[0] = (player_x - card_spacing, player_y)
         self.player_position[1] = (player_x + card_spacing, player_y)
 
-    def _raise(self, current_highest_bet):
-        bet = int(input("Raise Amount:"))
+    def _raise(self, current_highest_bet, amount):
+        # bet = int(input("Raise Amount:"))
+        bet = amount
+
+        # All in
         if bet >= self.money:
-            #will change this for pygame implementation
-            print("You went all in")
-            current_highest_bet = self._all_in()
+            print(f"{self.name} went all in")
+            current_highest_bet = self._all_in(current_highest_bet)
             self.have_bet = True
             return current_highest_bet
-
+        # Regular raise
         elif bet > current_highest_bet:
             self.money -= bet
             self.bet += bet - self.bet
             current_highest_bet = bet
             self.have_bet = True
             return current_highest_bet
-
+        # bet < current_highest_bet
         else:
-            print("try again")
-            self._raise(current_highest_bet)
+            return self._call(current_highest_bet)
 
     def _check(self, current_highest_bet):
         print("check")
@@ -110,12 +113,11 @@ class Players():
     def _call(self, current_highest_bet):
         print("call")
         if current_highest_bet != 0:
-            #this needs to check if you will go all in or not
+            # this needs to check if you will go all in or not
             self.money -= current_highest_bet - self.bet
             self.bet += current_highest_bet
             self.have_bet = True
-            return  current_highest_bet
-
+            return current_highest_bet
 
     def _fold(self, discard_pile):
         print("fold")
@@ -137,19 +139,122 @@ class Players():
         else:
             return current_highest_bet
 
+    def get_check_or_call(self, options: [str]):
+        return ("CALL", 0) if "CALL" in options else ("CHECK", 0)
+
+    def player_bot_action(self, current_highest_bet: int, total_pot: int, flop: [], options: [str]):
+
+        # `self` is your player object, it has fields like:
+        #   `money` : How much money you have (does not include betted)
+        #   `bet` : How much money has been betted in this match
+        #   `player_hand` : Array of card objects, see `flop` for more details.
+
+        # `current_highest_bet` is how much has been bet in this round
+        # of betting so far
+
+        # `total_pot` is how much is currently in the pot
+
+        # `flop` is an array of Card objects that are currently on the flop
+        # Card objects have a `type` and a `suit` that look like so:
+        # SUITS = {0: "S", 1: "H", 2: "C", 3: "D"}
+        # TYPE = {0: "A", 1: "2", 2: "3", 3: "4", 4: "5", 5: "6", 6: "7", 7: "8", 8: "9", 9: "T", 10: "J", 11: "Q", 12: "K"}
+
+        # `options` is a dictionary of {string: int} pairs. The options "CALL"
+        # a
+        # nd "CHECK" will not always be available, so it is recommended to
+        # check your options, and use a backup option if you can't
+        # `if "CHECK" in options: # Do logic`
+        #   "FOLD"  : 1
+        #   "CALL"  : 2
+        #   "CHECK" : 3
+        #   "RAISE" : 4
+        #   "ALLIN" : 5
+
+        hearts = 0
+        clubs = 0
+        spades = 0
+        diamonds = 0
+
+        # Check for suits on hand
+        for card in self.player_hand:
+            hearts += card.suit is "H"
+            clubs += card.suit is "C"
+            spades += card.suit is "S"
+            diamonds += card.suit is "D"
+
+        stay_in = 0
+
+        # If we have pocket suits, thats a good sign for a flush
+        if hearts == 2 or clubs == 2 or spades == 2 or diamonds == 2:
+            stay_in += 1
+
+        # If first flop is out and there are 4 of a suit between hand and flop
+        # its a good idea to stay in
+        if len(flop) >= 3:
+            for card in flop:
+                hearts += card.suit is "H"
+                clubs += card.suit is "C"
+                spades += card.suit is "S"
+                diamonds += card.suit is "D"
+            # These numbers include own hand
+            stay_in += (hearts > 4 or clubs > 4 or spades > 4 or diamonds > 4)
+
+        card_types = {}
+        for card in (self.player_hand + flop):
+            ct = card.type
+            if ct not in card_types:
+                card_types[ct] = 1
+            else:
+                card_types[ct] += 1
+
+        # Find most card pairs
+        max_count = 0
+        max_type = None
+
+        for ct, count in card_types.items():
+            if count > max_count:
+                max_type = ct
+                max_count = count
+
+        # two of a kind is a good sign
+        if max_count >= 2:
+            stay_in += 1
+
+            # Bet a lot more if we're dealing with a pair of face cards or
+            # have a three pair or better
+            if max_type > 10 or max_count >= 3:
+                return ("RAISE", self.money / 5) if self.money > 0 else self.get_check_or_call(options)
+
+            # two pair low card isn't great, but good to bet on
+            # early game
+            if max_type < 6 and len(flop) < 4:
+                return ("RAISE", self.money / 10) if self.money > 0 else self.get_check_or_call(options)
+
+            # It's a good bet
+            if total_pot < 20:
+                return ("RAISE", self.money / 10) if self.money > 0 else self.get_check_or_call(options)
+
+        if (stay_in > 0):
+            return self.get_check_or_call(options)
+
+        entropy = random.randint(0, 11) / 10.0
+        if (entropy >= .4):
+            return ("RAISE", random.randint(1, self.money)) if self.money > 0 else self.get_check_or_call(options)
+
+        return ("FOLD", 0)
 
     # The actual player input on their turn
-
-    def _player_turn(self, discard_pile, current_highest_bet, total_bet):
+    def _player_turn(self, discard_pile, current_highest_bet, total_bet, flop):
 
         old_bet = self.bet
 
         # Skip the players turn if they've gone all in, folded, or have already bet the right amount
-        if self.fold_bool == True or self.all_in_bool == True or (self.bet == current_highest_bet and self.have_bet == True):
+        if self.fold_bool == True or self.all_in_bool == True or (
+                self.bet == current_highest_bet and self.have_bet == True):
             return total_bet, current_highest_bet
 
         else:
-            print(f"\n{self.name} has",self.money, "dollars.")
+            print(f"\n{self.name} has", self.money, "dollars.")
             print(f"Player Hand: {[str(card) for card in self.player_hand]}")
             print(f"The bet was: ", current_highest_bet)
             print(f"The pot is : {total_bet}")
@@ -158,16 +263,28 @@ class Players():
             can_check = current_highest_bet == self.bet
 
             # how much we have to call
-            call_amount = current_highest_bet - self.bet;
+            call_amount = current_highest_bet - self.bet
 
             print("What do you want to do (enter index)?\n"
-                "1: Fold\n"
-                f"{'2' if call_amount > 0 else 'X'}: Call\n"
-                f"{'X' if not can_check else '3'}: Check\n"
-                "4: Raise\n"
-                "5: All in")
+                  "1: Fold\n"
+                  f"{'2' if call_amount > 0 else 'X'}: Call\n"
+                  f"{'X' if not can_check else '3'}: Check\n"
+                  "4: Raise\n"
+                  "5: All in")
 
-            player_action = int(input("Answer: "))
+            # player_action = int(input("Answer: "))
+
+            options = {"FOLD": 1, "CALL": 2, "CHECK": 3, "RAISE": 4, "ALLIN": 5}
+
+            if not call_amount > 0:
+                options.pop("CALL")
+
+            if not can_check:
+                options.pop("CHECK")
+
+            (player_action_name, raise_amount) = self.player_bot_action(current_highest_bet, total_bet, flop, options)
+
+            player_action = options[player_action_name]
 
             # Choose the player decision
             if player_action == 1:
@@ -177,11 +294,11 @@ class Players():
             elif player_action == 3 and can_check:
                 self._check(current_highest_bet)
             elif player_action == 4:
-                current_highest_bet = self._raise(current_highest_bet)
+                current_highest_bet = self._raise(current_highest_bet, raise_amount)
             elif player_action == 5:
                 current_highest_bet = self._all_in(current_highest_bet)
 
             # how much is being added to the pot
             total_bet += abs(self.bet - old_bet)
 
-            return  total_bet, current_highest_bet
+            return total_bet, current_highest_bet

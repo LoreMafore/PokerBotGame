@@ -22,6 +22,7 @@ class Dealer():
         # Initialize the deck
         self._cards()
 
+        # TODO FILL OUT NAMES HERE
         names = ["Alice", "Bob", "Charlie", "Diana", "Ethan", "Fiona", "George", "Hannah", "Ian", "Julia"]
 
         # Create the players with an initial money amount
