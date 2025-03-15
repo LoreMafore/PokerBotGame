@@ -24,8 +24,8 @@ class Cards:
         self.suit = suit
         self.sprite = None
         self.pos = (1920//2 + 300, 1080//2 - 50)
-        self.width = 64 #64
-        self.height = 96 #96
+        self.width = 96   #64
+        self.height = 144  #96
         self.rotate = 0
         self.is_showing_card = False
         self._load_sprite(self.is_showing_card)
@@ -68,5 +68,6 @@ class Cards:
 
     def __repr__(self):
         return f"Cards({self.type}, {self.suit})"
+
 
     #draw card function maybe this could be in player, function for card facing, innit and final position of cards
