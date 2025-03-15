@@ -547,7 +547,8 @@ def _game_logic(screen, dealer, background):
         big_blind_pos = (big_blind_pos + 1) % len(dealer.player_list)
 
         # Small delay before the next hand
-        time.sleep(1.5)
+        # time.sleep(1.5)
+
 
 
 def _main():

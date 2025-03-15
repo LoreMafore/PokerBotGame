@@ -142,7 +142,17 @@ class Players():
     def get_check_or_call(self, options: [str]):
         return ("CALL", 0) if "CALL" in options else ("CHECK", 0)
 
-    def player_bot_action(self, current_highest_bet: int, total_pot: int, flop: [], options: [str]):
+    def random_bot_action(self, current_highest_bet: int, total_pot: int, flop: [], options: [str]):
+        # Force fold if current_highest_bet exceeds the bot's money
+        if current_highest_bet > self.money:
+            # If "fold" is not in options, return whatever is available, but logically should include fold
+            return "fold" if "fold" in options else random.choice(list(options)), 0
+        else:
+            # Normal random behavior when the bot has enough money
+            return random.choice(list(options)), random.randint(current_highest_bet, self.money)
+
+
+    def default_bot_action(self, current_highest_bet: int, total_pot: int, flop: [], options: [str]):
 
         # `self` is your player object, it has fields like:
         #   `money` : How much money you have (does not include betted)
@@ -177,10 +187,10 @@ class Players():
 
         # Check for suits on hand
         for card in self.player_hand:
-            hearts += card.suit is "H"
-            clubs += card.suit is "C"
-            spades += card.suit is "S"
-            diamonds += card.suit is "D"
+            hearts += card.suit == "H"
+            clubs += card.suit == "C"
+            spades += card.suit == "S"
+            diamonds += card.suit == "D"
 
         stay_in = 0
 
@@ -192,10 +202,10 @@ class Players():
         # its a good idea to stay in
         if len(flop) >= 3:
             for card in flop:
-                hearts += card.suit is "H"
-                clubs += card.suit is "C"
-                spades += card.suit is "S"
-                diamonds += card.suit is "D"
+                hearts += card.suit == "H"
+                clubs += card.suit == "C"
+                spades += card.suit == "S"
+                diamonds += card.suit == "D"
             # These numbers include own hand
             stay_in += (hearts > 4 or clubs > 4 or spades > 4 or diamonds > 4)
 
@@ -282,7 +292,13 @@ class Players():
             if not can_check:
                 options.pop("CHECK")
 
-            (player_action_name, raise_amount) = self.player_bot_action(current_highest_bet, total_bet, flop, options)
+            # HERE IMPLEMENT EACH BOT AS A SWITCH STATEMENT
+            if self.name == "Alice":
+                (player_action_name, raise_amount) = self.random_bot_action(
+                    current_highest_bet, total_bet, flop, options)
+            else:
+                (player_action_name, raise_amount) = self.default_bot_action(
+                    current_highest_bet, total_bet, flop, options)
 
             player_action = options[player_action_name]
 
@@ -290,11 +306,44 @@ class Players():
             if player_action == 1:
                 self._fold(discard_pile)
             elif player_action == 2 and call_amount > 0:
-                self._call(current_highest_bet)
+                # Check if player has enough money to call
+                if call_amount > self.money:
+                    # Not enough money to call, go all in instead
+                    current_highest_bet = self._all_in(current_highest_bet)
+                else:
+                    self._call(current_highest_bet)
             elif player_action == 3 and can_check:
                 self._check(current_highest_bet)
             elif player_action == 4:
-                current_highest_bet = self._raise(current_highest_bet, raise_amount)
+                # We want to raise here
+                if current_highest_bet > self.money + self.bet:
+                    # Not enough money to match the current bet, go all in
+                    current_highest_bet = self._all_in(current_highest_bet)
+                elif raise_amount <= 0:
+                    # Invalid raise amount, default to minimum raise
+                    raise_amount = 1
+                    current_highest_bet = self._raise(current_highest_bet, raise_amount)
+                elif current_highest_bet + raise_amount <= self.money + self.bet:
+                    # Valid raise
+                    current_highest_bet = self._raise(current_highest_bet, current_highest_bet + raise_amount)
+                else:
+                    # Raise too high, limit to available money
+                    available_for_raise = self.money + self.bet - current_highest_bet
+                    if available_for_raise > 0:
+                        current_highest_bet = self._raise(current_highest_bet,
+                                                          current_highest_bet + available_for_raise)
+                    else:
+                        # Can't raise, try to call
+                        if call_amount > 0:
+                            if call_amount > self.money:
+                                current_highest_bet = self._all_in(current_highest_bet)
+                            else:
+                                self._call(current_highest_bet)
+                        elif can_check:
+                            self._check(current_highest_bet)
+                        else:
+                            # Can't call or check, fold
+                            self._fold(discard_pile)
             elif player_action == 5:
                 current_highest_bet = self._all_in(current_highest_bet)
 
